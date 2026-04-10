@@ -1,6 +1,7 @@
 
 'use client';
 
+import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -22,11 +23,12 @@ export function Header() {
           Bookmarks
         </Link>
         
-        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center">
-          <div className="w-8 h-8 rounded-full bg-background flex items-center justify-center">
-            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-cyan-400" />
-          </div>
-        </div>
+        <Link href="/login">
+          <Button variant="ghost">Sign In</Button>
+        </Link>
+        <Link href="/signup">
+          <Button>Sign Up</Button>
+        </Link>
       </nav>
     </header>
   );
