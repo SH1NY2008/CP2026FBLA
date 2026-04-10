@@ -16,6 +16,8 @@ import { doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove } from 'firebas
 import { db } from '@/firebase';
 import { Button } from '@/components/ui/button';
 import { CommentSection } from '@/components/comment-section';
+import { ReviewForm } from '@/components/review-form';
+import { StarRating } from '@/components/star-rating';
 
 interface Photo {
   photo_reference: string;
@@ -52,23 +54,7 @@ interface BusinessDetails {
   summary?: { overview: string; language: string; };
 }
 
-const StarRating = ({ rating }: { rating: number }) => {
-  const fullStars = Math.floor(rating);
-  const halfStar = rating % 1 !== 0;
-  const emptyStars = 5 - fullStars - (halfStar ? 1 : 0);
 
-  return (
-    <div className="flex items-center">
-      {[...Array(fullStars)].map((_, i) => (
-        <Star key={`full-${i}`} className="h-5 w-5 fill-yellow-400 text-yellow-400" />
-      ))}
-      {halfStar && <Star key="half" className="h-5 w-5 fill-yellow-400 text-yellow-400" />}
-      {[...Array(emptyStars)].map((_, i) => (
-        <Star key={`empty-${i}`} className="h-5 w-5 fill-gray-300 text-gray-300" />
-      ))}
-    </div>
-  );
-};
 
 export default function BusinessDetailsPage() {
   const params = useParams();
@@ -79,6 +65,8 @@ export default function BusinessDetailsPage() {
   const [distance, setDistance] = useState<number | null>(null);
   const { user } = useAuth();
   const [isBookmarked, setIsBookmarked] = useState(false);
+  const [displayRating, setDisplayRating] = useState<number | null>(null);
+  const [displayRatingCount, setDisplayRatingCount] = useState<number | null>(null);
 
   useEffect(() => {
     if (user && placeId) {
@@ -109,6 +97,8 @@ export default function BusinessDetailsPage() {
           }
           const { editorial_summary: summary, ...rest } = data.result;
           setBusiness({ ...rest, summary });
+          setDisplayRating(data.result.rating);
+          setDisplayRatingCount(data.result.user_ratings_total);
         } catch (err) {
           const errorMessage = err instanceof Error ? err.message : 'Failed to fetch business details';
           setError(errorMessage);
@@ -180,6 +170,17 @@ export default function BusinessDetailsPage() {
     setIsBookmarked(!isBookmarked);
   };
 
+  const handleReviewSuccess = (newRating: number) => {
+    if (displayRating && displayRatingCount) {
+      const newTotalRating = (displayRating * displayRatingCount) + newRating;
+      const newTotalReviews = displayRatingCount + 1;
+      const newAverage = newTotalRating / newTotalReviews;
+
+      setDisplayRating(newAverage);
+      setDisplayRatingCount(newTotalReviews);
+    }
+  };
+
   return (
     <main className="min-h-screen bg-background text-foreground">
       <Header />
@@ -224,8 +225,8 @@ export default function BusinessDetailsPage() {
                     )}
                   </div>
                   <div className="flex items-center gap-4 text-lg">
-                    <StarRating rating={business.rating} />
-                    <span>{business.rating.toFixed(1)} ({business.user_ratings_total} reviews)</span>
+                    <StarRating rating={displayRating ?? business.rating} />
+                    <span>{(displayRating ?? business.rating).toFixed(1)} ({displayRatingCount ?? business.user_ratings_total} reviews)</span>
                   </div>
                   <div className="flex items-center gap-2 mt-2 text-muted-foreground">
                     <span>{business.types.join(', ')}</span>
@@ -245,6 +246,14 @@ export default function BusinessDetailsPage() {
                   <div className="mb-8">
                     <h2 className="text-2xl font-bold mb-4">About {business.name}</h2>
                     <p className="text-lg text-muted-foreground">{business.summary.overview}</p>
+                  </div>
+                )}
+
+                {/* Review Form */}
+                {user && (
+                  <div className="mb-8">
+                    <h2 className="text-2xl font-bold mb-4">Leave a Review</h2>
+                    <ReviewForm businessId={placeId} onSuccess={handleReviewSuccess} />
                   </div>
                 )}
               </div>
@@ -270,6 +279,7 @@ export default function BusinessDetailsPage() {
 
             {/* Comments Section */}
             <div className="mt-12">
+              <h2 className="text-3xl font-bold mb-4">Reviews</h2>
               <CommentSection placeId={placeId} />
             </div>
 
