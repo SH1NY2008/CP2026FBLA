@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Header } from '@/components/header';
-import { Footer } from '@/components/footer';
+
 import { useAuth } from '@/hooks/useAuth';
 import { db } from '@/firebase';
 import { doc, getDoc } from 'firebase/firestore';
@@ -79,7 +79,7 @@ export default function BookmarksPage() {
           </div>
         )}
       </Container>
-      <Footer />
+      
     </main>
   );
 }

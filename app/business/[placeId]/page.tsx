@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation';
 import Image from 'next/image';
 import { Container } from '@/components/ui/container';
 import { Header } from '@/components/header';
-import { Footer } from '@/components/footer';
+
 import { BusinessMap } from '@/components/business-map';
 import { BusinessCardSkeleton } from '@/components/business-card-skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -15,6 +15,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { db } from '@/firebase';
 import { Button } from '@/components/ui/button';
+import { CommentSection } from '@/components/comment-section';
 
 interface Photo {
   photo_reference: string;
@@ -267,6 +268,11 @@ export default function BusinessDetailsPage() {
               </div>
             </div>
 
+            {/* Comments Section */}
+            <div className="mt-12">
+              <CommentSection placeId={placeId} />
+            </div>
+
             {/* Location & Hours */}
             <div className="mt-12">
               <h2 className="text-3xl font-bold mb-4">Location & Hours</h2>
@@ -302,7 +308,7 @@ export default function BusinessDetailsPage() {
           </div>
         )}
       </Container>
-      <Footer />
+      
     </main>
   );
 }

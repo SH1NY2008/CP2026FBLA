@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Container } from '@/components/ui/container';
 import { Header } from '@/components/header';
-import { Footer } from '@/components/footer';
+
 import { LocationDetector } from '@/components/location-detector';
 import { BusinessFilters } from '@/components/business-filters';
 import { BusinessCard } from '@/components/business-card';
@@ -202,7 +202,7 @@ export default function BrowsePage() {
         )}
       </Container>
 
-      <Footer />
+      
     </main>
   );
 }

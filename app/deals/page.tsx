@@ -1,5 +1,5 @@
 import { Header } from '@/components/header';
-import { Footer } from '@/components/footer';
+
 import { Container } from '@/components/ui/container';
 import Auth from '../../components/auth';
 
@@ -14,7 +14,7 @@ export default function DealsPage() {
             <p className="text-lg text-muted-foreground">Coming soon - discover special offers from local businesses</p>
           </div>
         </Container>
-        <Footer />
+        
       </main>
     </Auth>
   );
