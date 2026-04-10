@@ -44,6 +44,7 @@ interface BusinessDetails {
   website: string;
   types: string[];
   price_level: number;
+  summary?: { overview: string; language: string; };
 }
 
 const StarRating = ({ rating }: { rating: number }) => {
@@ -86,7 +87,8 @@ export default function BusinessDetailsPage() {
           if (data.status !== 'OK') {
             throw new Error(data.error_message || 'Failed to fetch business details');
           }
-          setBusiness(data.result);
+          const { editorial_summary: summary, ...rest } = data.result;
+          setBusiness({ ...rest, summary });
         } catch (err) {
           const errorMessage = err instanceof Error ? err.message : 'Failed to fetch business details';
           setError(errorMessage);
@@ -182,6 +184,14 @@ export default function BusinessDetailsPage() {
                     </div>
                   )}
                 </div>
+
+                {/* Business Summary */}
+                {business.summary && (
+                  <div className="mb-8">
+                    <h2 className="text-2xl font-bold mb-4">About {business.name}</h2>
+                    <p className="text-lg text-muted-foreground">{business.summary.overview}</p>
+                  </div>
+                )}
               </div>
 
               <div className="col-span-1">

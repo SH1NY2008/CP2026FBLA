@@ -32,6 +32,7 @@ export async function GET(request: NextRequest) {
       'formatted_phone_number',
       'website',
       'price_level',
+      'editorial_summary',
     ];
 
     const params = new URLSearchParams({
