@@ -20,9 +20,24 @@ export async function GET(request: NextRequest) {
   }
 
   try {
+    const fields = [
+      'name',
+      'formatted_address',
+      'geometry',
+      'rating',
+      'user_ratings_total',
+      'types',
+      'opening_hours',
+      'photos',
+      'formatted_phone_number',
+      'website',
+      'price_level',
+    ];
+
     const params = new URLSearchParams({
       place_id: placeId,
       key: apiKey,
+      fields: fields.join(','),
     });
 
     const response = await fetch(
