@@ -7,6 +7,7 @@ import { AnimatedMarquee } from '@/components/animated-marquee';
 import { FeaturedBusinesses } from '@/components/featured-businesses';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, MapPin, Search, ArrowDown } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 
 export default function Home() {
   return (
@@ -14,54 +15,58 @@ export default function Home() {
       <Header />
 
       {/* Hero Section */}
-      <section className="relative min-h-screen flex flex-col items-center justify-center px-4 pt-20 pb-16 overflow-hidden">
-
-
-        <div className="max-w-5xl text-center">
-          {/* Headline - stacked BUSINESS BOOST */}
-          <h1 className="mb-8">
-            <div className="text-6xl sm:text-7xl md:text-8xl lg:text-9xl font-black leading-none tracking-tight text-foreground">
-              BUSINESS
-            </div>
-            <div className="text-6xl sm:text-7xl md:text-8xl lg:text-9xl font-black leading-none tracking-tight text-neutral-600 mt-2">
-              BOOST
-            </div>
+      <section className="relative h-screen flex flex-col justify-center items-center overflow-hidden px-4">
+        <div
+          className="z-10 text-center max-w-5xl mx-auto"
+        >
+          <h1
+            className="text-[12vw] leading-[0.9] font-bold tracking-tighter uppercase mb-6 mix-blend-difference"
+          >
+            Business
+            <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-neutral-200 to-neutral-600">Boost</span>
           </h1>
-
-          {/* Tagline */}
-          <p className="text-base md:text-lg text-muted-foreground mb-12 max-w-2xl mx-auto leading-relaxed">
+          
+          <p
+            className="text-xl md:text-2xl text-neutral-400 max-w-2xl mx-auto mb-12 font-light"
+          >
             Discover local gems, unlock exclusive deals, and support the heartbeat of your community.
           </p>
 
-          {/* Search Bar and Button */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center max-w-2xl mx-auto mb-16">
-            <div className="relative flex-1 w-full sm:w-auto">
-              <Search className="absolute left-6 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-              <input
-                type="text"
+          <div
+            className="flex flex-col sm:flex-row gap-4 justify-center items-center"
+          >
+            <div className="relative group w-full sm:w-auto">
+              <Input
                 placeholder="Search businesses..."
-                className="w-full pl-14 pr-6 py-4 bg-transparent border-2 border-neutral-800 rounded-full text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent"
+                className="h-12 w-full sm:w-80 bg-neutral-900/50 border-neutral-800 text-white rounded-full px-6 focus:ring-1 focus:ring-white transition-all duration-300"
               />
+              <Search className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
             </div>
-            <Button
-              asChild
-              size="lg"
-              className="bg-white hover:bg-neutral-200 text-black rounded-full px-8 font-medium whitespace-nowrap"
-            >
-              <Link href="/browse">
-                Explore Map
-              </Link>
+            <Button size="lg" className="rounded-full bg-white text-black hover:bg-neutral-200 h-12 px-8 font-medium">
+              Explore Map
             </Button>
           </div>
         </div>
-        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-muted-foreground animate-bounce">
-          <span className="text-sm tracking-widest">SCROLL TO EXPLORE</span>
-          <ArrowDown className="h-5 w-5" />
+
+        {/* Background Elements */}
+        <div className="absolute inset-0 z-0 opacity-20">
+           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-to-tr from-purple-900 to-blue-900 rounded-full blur-[120px]" />
+        </div>
+        
+        <div
+          className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-neutral-500"
+        >
+          <span className="text-xs uppercase tracking-widest">Scroll to explore</span>
+          <div className="w-[1px] h-12 bg-gradient-to-b from-neutral-500 to-transparent" />
         </div>
       </section>
 
       {/* Marquee Section */}
       <AnimatedMarquee />
+
+      {/* Featured Businesses Section */}
+      <FeaturedBusinesses />
 
 
 

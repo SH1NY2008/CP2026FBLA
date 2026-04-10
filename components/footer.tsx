@@ -24,7 +24,7 @@ import { motion } from "framer-motion"
           </motion.div>
         </div>
       </section>
-      <div className="container mx-auto px-6 lg:px-12 relative z-10 flex flex-col items-center pt-20 pb-80"> 
+      <div className="container mx-auto px-6 lg:px-12 relative z-10 flex flex-col items-center pt-20 pb-96"> 
          {/* Navigation Links */} 
          <div className="flex flex-wrap justify-center gap-x-20 gap-y-4 mb-16 text-sm font-bold uppercase tracking-wide"> 
            <Link href="/browse" className="hover:text-primary transition-colors"> 
@@ -42,7 +42,7 @@ import { motion } from "framer-motion"
          </div> 
  
          {/* Legal & Copyright */} 
-         <div className="flex flex-wrap justify-center gap-x-12 gap-y-4 text-xs text-muted-foreground"> 
+         <div className="flex flex-wrap justify-center gap-x-16 gap-y-4 text-xs text-muted-foreground"> 
            <span>© 2026 Byte-Sized Boost</span> 
            <Link href="/privacy" className="hover:text-primary transition-colors"> 
              Privacy Policy 
