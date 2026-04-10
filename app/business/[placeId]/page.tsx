@@ -9,8 +9,12 @@ import { Footer } from '@/components/footer';
 import { BusinessMap } from '@/components/business-map';
 import { BusinessCardSkeleton } from '@/components/business-card-skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertCircle, Star, Clock, Phone, Globe, MapPin } from 'lucide-react';
+import { AlertCircle, Star, Clock, Phone, Globe, MapPin, Bookmark } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { useAuth } from '@/hooks/useAuth';
+import { doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
+import { db } from '@/firebase';
+import { Button } from '@/components/ui/button';
 
 interface Photo {
   photo_reference: string;
@@ -72,6 +76,21 @@ export default function BusinessDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [distance, setDistance] = useState<number | null>(null);
+  const { user } = useAuth();
+  const [isBookmarked, setIsBookmarked] = useState(false);
+
+  useEffect(() => {
+    if (user && placeId) {
+      const checkBookmark = async () => {
+        const bookmarkRef = doc(db, 'bookmarks', user.uid);
+        const bookmarkSnap = await getDoc(bookmarkRef);
+        if (bookmarkSnap.exists() && bookmarkSnap.data().placeIds.includes(placeId)) {
+          setIsBookmarked(true);
+        }
+      };
+      checkBookmark();
+    }
+  }, [user, placeId]);
 
   useEffect(() => {
     if (placeId) {
@@ -132,6 +151,34 @@ export default function BusinessDetailsPage() {
 
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY;
 
+  const handleBookmark = async () => {
+    if (!user) {
+      // TODO: Maybe show a toast or a modal to prompt user to login
+      return;
+    }
+
+    const bookmarkRef = doc(db, 'bookmarks', user.uid);
+    const bookmarkSnap = await getDoc(bookmarkRef);
+
+    if (bookmarkSnap.exists()) {
+      if (isBookmarked) {
+        await updateDoc(bookmarkRef, {
+          placeIds: arrayRemove(placeId)
+        });
+      } else {
+        await updateDoc(bookmarkRef, {
+          placeIds: arrayUnion(placeId)
+        });
+      }
+    } else {
+      await setDoc(bookmarkRef, { 
+        placeIds: [placeId]
+      });
+    }
+
+    setIsBookmarked(!isBookmarked);
+  };
+
   return (
     <main className="min-h-screen bg-background text-foreground">
       <Header />
@@ -167,7 +214,14 @@ export default function BusinessDetailsPage() {
               <div className="col-span-2">
                 {/* Header */}
                 <div className="mb-8">
-                  <h1 className="text-5xl font-bold mb-2">{business.name}</h1>
+                  <div className="flex items-center gap-4">
+                    <h1 className="text-5xl font-bold mb-2">{business.name}</h1>
+                    {user && (
+                      <Button variant="ghost" size="icon" onClick={handleBookmark}>
+                        <Bookmark className={isBookmarked ? 'fill-yellow-400 text-yellow-400' : ''} />
+                      </Button>
+                    )}
+                  </div>
                   <div className="flex items-center gap-4 text-lg">
                     <StarRating rating={business.rating} />
                     <span>{business.rating.toFixed(1)} ({business.user_ratings_total} reviews)</span>
