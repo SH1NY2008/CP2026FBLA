@@ -17,6 +17,8 @@ interface BusinessCardProps {
   priceLevel?: number;
   types: string[];
   distance?: number;
+  lat: number;
+  lng: number;
 }
 
 const PRICE_DISPLAY = {
@@ -37,6 +39,8 @@ export function BusinessCard({
   priceLevel,
   types,
   distance,
+  lat,
+  lng,
 }: BusinessCardProps) {
   const categoryLabel = getCategoryLabel(types);
 

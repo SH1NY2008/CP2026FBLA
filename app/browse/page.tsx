@@ -23,6 +23,7 @@ interface Business {
   types: string[];
   lat: number;
   lng: number;
+  distance?: number;
 }
 
 const TYPE_MAP: { [key: string]: string } = {
@@ -191,18 +192,7 @@ export default function BrowsePage() {
                   </p>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {businesses.map((business) => (
-                      <BusinessCard
-                        key={business.placeId}
-                        name={business.name}
-                        address={business.address}
-                        rating={business.rating}
-                        ratingCount={business.ratingCount}
-                        isOpen={business.isOpen}
-                        photoUrl={business.photoUrl}
-                        priceLevel={business.priceLevel}
-                        types={business.types}
-                        distance={business.distance}
-                      />
+                      <BusinessCard key={business.placeId} {...business} />
                     ))}
                   </div>
                 </div>
