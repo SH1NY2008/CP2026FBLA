@@ -5,7 +5,6 @@ import { useParams } from 'next/navigation';
 import Image from 'next/image';
 import { Container } from '@/components/ui/container';
 import { Header } from '@/components/header';
-
 import { BusinessMap } from '@/components/business-map';
 import { BusinessCardSkeleton } from '@/components/business-card-skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -18,6 +17,14 @@ import { Button } from '@/components/ui/button';
 import { CommentSection } from '@/components/comment-section';
 import { ReviewForm } from '@/components/review-form';
 import { StarRating } from '@/components/star-rating';
+import { GeminiCard } from '@/components/gemini-card';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 interface Photo {
   photo_reference: string;
@@ -54,8 +61,6 @@ interface BusinessDetails {
   summary?: { overview: string; language: string; };
 }
 
-
-
 export default function BusinessDetailsPage() {
   const params = useParams();
   const placeId = params.placeId as string;
@@ -67,6 +72,7 @@ export default function BusinessDetailsPage() {
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [displayRating, setDisplayRating] = useState<number | null>(null);
   const [displayRatingCount, setDisplayRatingCount] = useState<number | null>(null);
+  const [isRatingDialogOpen, setIsRatingDialogOpen] = useState(false);
 
   useEffect(() => {
     if (user && placeId) {
@@ -97,8 +103,25 @@ export default function BusinessDetailsPage() {
           }
           const { editorial_summary: summary, ...rest } = data.result;
           setBusiness({ ...rest, summary });
-          setDisplayRating(data.result.rating);
-          setDisplayRatingCount(data.result.user_ratings_total);
+
+          // Set initial ratings from Google
+          let initialRating = data.result.rating;
+          let initialRatingCount = data.result.user_ratings_total;
+
+          // Now, check Firestore for overrides
+          const ratingRef = doc(db, 'businessRatings', placeId);
+          const ratingSnap = await getDoc(ratingRef);
+
+          if (ratingSnap.exists()) {
+            const firestoreData = ratingSnap.data();
+            if (firestoreData.rating && firestoreData.ratingCount) {
+              initialRating = firestoreData.rating;
+              initialRatingCount = firestoreData.ratingCount;
+            }
+          }
+
+          setDisplayRating(initialRating);
+          setDisplayRatingCount(initialRatingCount);
         } catch (err) {
           const errorMessage = err instanceof Error ? err.message : 'Failed to fetch business details';
           setError(errorMessage);
@@ -170,15 +193,28 @@ export default function BusinessDetailsPage() {
     setIsBookmarked(!isBookmarked);
   };
 
-  const handleReviewSuccess = (newRating: number) => {
-    if (displayRating && displayRatingCount) {
-      const newTotalRating = (displayRating * displayRatingCount) + newRating;
-      const newTotalReviews = displayRatingCount + 1;
-      const newAverage = newTotalRating / newTotalReviews;
+  const handleReviewSuccess = async (newRating: number) => {
+    const currentRating = displayRating ?? 0;
+    const currentCount = displayRatingCount ?? 0;
 
-      setDisplayRating(newAverage);
-      setDisplayRatingCount(newTotalReviews);
+    const newTotalRating = (currentRating * currentCount) + newRating;
+    const newTotalReviews = currentCount + 1;
+    const newAverage = newTotalRating / newTotalReviews;
+
+    try {
+      const ratingRef = doc(db, "businessRatings", placeId);
+      await setDoc(ratingRef, {
+        rating: newAverage,
+        ratingCount: newTotalReviews
+      });
+    } catch (e) {
+      console.error("Failed to update rating in Firestore", e);
+      // Here you might want to show a toast to the user
     }
+
+    setDisplayRating(newAverage);
+    setDisplayRatingCount(newTotalReviews);
+    setIsRatingDialogOpen(false);
   };
 
   return (
@@ -225,8 +261,25 @@ export default function BusinessDetailsPage() {
                     )}
                   </div>
                   <div className="flex items-center gap-4 text-lg">
-                    <StarRating rating={displayRating ?? business.rating} />
-                    <span>{(displayRating ?? business.rating).toFixed(1)} ({displayRatingCount ?? business.user_ratings_total} reviews)</span>
+                    <Dialog open={isRatingDialogOpen} onOpenChange={setIsRatingDialogOpen}>
+                      <DialogTrigger asChild>
+                        <div className="flex items-center gap-2 cursor-pointer">
+                          <StarRating rating={displayRating ?? business.rating} />
+                          <span className="text-lg">
+                            {(displayRating ?? business.rating).toFixed(1)}
+                          </span>
+                          <span className="text-muted-foreground text-lg">
+                            ({displayRatingCount ?? business.user_ratings_total} reviews)
+                          </span>
+                        </div>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Leave a Rating</DialogTitle>
+                        </DialogHeader>
+                        <ReviewForm businessId={placeId} onSuccess={handleReviewSuccess} />
+                      </DialogContent>
+                    </Dialog>
                   </div>
                   <div className="flex items-center gap-2 mt-2 text-muted-foreground">
                     <span>{business.types.join(', ')}</span>
@@ -241,19 +294,18 @@ export default function BusinessDetailsPage() {
                   )}
                 </div>
 
+                {/* Gemini Summary */}
+                {business.types && (
+                  <div className="mb-8">
+                    <GeminiCard amenities={business.types} />
+                  </div>
+                )}
+
                 {/* Business Summary */}
                 {business.summary && (
                   <div className="mb-8">
                     <h2 className="text-2xl font-bold mb-4">About {business.name}</h2>
                     <p className="text-lg text-muted-foreground">{business.summary.overview}</p>
-                  </div>
-                )}
-
-                {/* Review Form */}
-                {user && (
-                  <div className="mb-8">
-                    <h2 className="text-2xl font-bold mb-4">Leave a Review</h2>
-                    <ReviewForm businessId={placeId} onSuccess={handleReviewSuccess} />
                   </div>
                 )}
               </div>
@@ -318,7 +370,6 @@ export default function BusinessDetailsPage() {
           </div>
         )}
       </Container>
-      
     </main>
   );
 }

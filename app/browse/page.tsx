@@ -10,6 +10,8 @@ import { BusinessCard } from '@/components/business-card';
 import { BusinessCardSkeleton } from '@/components/business-card-skeleton';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { getDocs, collection } from 'firebase/firestore';
+import { db } from '@/firebase';
 
 interface Business {
   placeId: string;
@@ -42,7 +44,6 @@ export default function BrowsePage() {
   const [radius, setRadius] = useState(5);
   const [selectedPrices, setSelectedPrices] = useState<number[]>([1, 2, 3, 4]);
 
-  // Fetch businesses when location or filters change
   useEffect(() => {
     if (location) {
       fetchBusinesses();
@@ -73,19 +74,28 @@ export default function BrowsePage() {
         throw new Error(data.error_message || 'No results found');
       }
 
-      // Calculate distances and filter by price
+      const ratingsSnapshot = await getDocs(collection(db, 'businessRatings'));
+      const firestoreRatings: { [key: string]: { rating: number; ratingCount: number } } = {};
+      ratingsSnapshot.forEach((doc) => {
+        firestoreRatings[doc.id] = doc.data() as { rating: number; ratingCount: number };
+      });
+
       const processedBusinesses = (data.results || [])
-        .map((business: Business) => ({
-          ...business,
-          distance: calculateDistance(
-            location.lat,
-            location.lng,
-            business.lat,
-            business.lng
-          ),
-        }))
+        .map((business: Business) => {
+          const firestoreRating = firestoreRatings[business.placeId];
+          return {
+            ...business,
+            rating: firestoreRating ? firestoreRating.rating : business.rating,
+            ratingCount: firestoreRating ? firestoreRating.ratingCount : business.ratingCount,
+            distance: calculateDistance(
+              location.lat,
+              location.lng,
+              business.lat,
+              business.lng
+            ),
+          };
+        })
         .filter((business: Business) => {
-          // Filter by selected price levels
           if (!business.priceLevel) return true;
           return selectedPrices.includes(business.priceLevel);
         })
@@ -120,13 +130,11 @@ export default function BrowsePage() {
       <Header />
       
       <Container className="max-w-7xl pt-28 pb-16">
-        {/* Header Section */}
         <div className="mb-12">
           <h1 className="text-5xl font-bold text-balance mb-3 text-foreground">Browse Local Businesses</h1>
           <p className="text-lg text-muted-foreground">Find restaurants, shops, services, and entertainment venues near you</p>
         </div>
 
-        {/* Location Detection */}
         {!location && (
           <div className="mb-8 max-w-2xl">
             <LocationDetector
@@ -137,7 +145,6 @@ export default function BrowsePage() {
           </div>
         )}
 
-        {/* Location Display */}
         {location && (
           <div className="mb-8 p-4 bg-secondary border border-border rounded-lg">
             <p className="text-sm font-medium text-foreground">
@@ -146,10 +153,8 @@ export default function BrowsePage() {
           </div>
         )}
 
-        {/* Main Content */}
         {location && (
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            {/* Filters Sidebar */}
             <div className="lg:col-span-1">
               <BusinessFilters
                 onCategoryChange={setSelectedCategory}
@@ -158,7 +163,6 @@ export default function BrowsePage() {
               />
             </div>
 
-            {/* Results */}
             <div className="lg:col-span-3">
               {loading && (
                 <>
