@@ -16,9 +16,10 @@ interface Location {
 
 interface LocationDetectorProps {
   onLocationFound: (location: Location) => void;
+  children?: React.ReactNode;
 }
 
-export function LocationDetector({ onLocationFound }: LocationDetectorProps) {
+export function LocationDetector({ onLocationFound, children }: LocationDetectorProps) {
   const [gpsLoading, setGpsLoading] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -120,7 +121,7 @@ export function LocationDetector({ onLocationFound }: LocationDetectorProps) {
         </Alert>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div className={`grid grid-cols-1 gap-3 items-stretch ${children ? 'sm:grid-cols-3' : 'sm:grid-cols-2'}`}>
         {/* GPS option */}
         <button
           type="button"
@@ -170,6 +171,8 @@ export function LocationDetector({ onLocationFound }: LocationDetectorProps) {
             </div>
           </div>
         </form>
+
+        {children}
       </div>
     </div>
   );

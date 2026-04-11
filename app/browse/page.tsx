@@ -348,10 +348,9 @@ export default function BrowsePage() {
             <p className="text-sm font-medium text-muted-foreground mb-4">
               Where are you looking?
             </p>
-            <div className="space-y-4">
-              <LocationDetector onLocationFound={setLocation} />
+            <LocationDetector onLocationFound={setLocation}>
               <CountryBrowser onLocationFound={setLocation} />
-            </div>
+            </LocationDetector>
           </div>
         )}
 

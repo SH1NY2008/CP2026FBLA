@@ -1,8 +1,7 @@
 'use client';
 
-import { useState } from 'react';
 import { Card } from '@/components/ui/card';
-import { Bookmark, Clock, Navigation, Star } from 'lucide-react';
+import { Clock, Navigation, Star } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -71,7 +70,6 @@ export function BusinessCard({
   types,
   distance,
 }: BusinessCardProps) {
-  const [saved, setSaved] = useState(false);
   const categoryLabel = getCategoryLabel(types);
   const primaryType = types[0] || 'restaurant';
   const gradient = TYPE_GRADIENTS[primaryType] || 'from-zinc-500/20 to-neutral-600/30';
@@ -116,20 +114,6 @@ export function BusinessCard({
               {address ? ` · ${address}` : ''}
             </p>
           </Link>
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-              setSaved(!saved);
-            }}
-            className={`shrink-0 p-1.5 rounded-lg transition-all duration-200 ${
-              saved
-                ? 'text-accent bg-accent/10'
-                : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-            }`}
-            aria-label={saved ? 'Remove from saved' : 'Save'}
-          >
-            <Bookmark className={`h-4 w-4 ${saved ? 'fill-accent' : ''}`} />
-          </button>
         </div>
 
         {/* Decision metadata */}

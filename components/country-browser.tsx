@@ -173,7 +173,7 @@ export function CountryBrowser({ onLocationFound, disabled }: CountryBrowserProp
         type="button"
         onClick={() => { reset(); setIsOpen(true); }}
         disabled={disabled}
-        className="flex flex-col items-center gap-3 p-6 rounded-xl border-2 border-dashed border-border hover:border-accent hover:bg-accent/5 transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed group"
+        className="flex flex-col items-center justify-center gap-3 p-6 rounded-xl border-2 border-dashed border-border hover:border-accent hover:bg-accent/5 transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed group h-full min-h-[9rem]"
       >
         <div className="p-3 rounded-full bg-muted group-hover:bg-accent/10 transition-colors">
           <Globe className="h-6 w-6 text-muted-foreground group-hover:text-accent transition-colors" />
@@ -187,7 +187,7 @@ export function CountryBrowser({ onLocationFound, disabled }: CountryBrowserProp
   }
 
   return (
-    <div className="rounded-xl border-2 border-accent/40 bg-card overflow-hidden">
+    <div className="sm:col-span-3 rounded-xl border-2 border-accent/40 bg-card overflow-hidden">
       {/* Header */}
       <div className="flex items-center gap-3 px-4 py-3 border-b border-border bg-muted/30">
         {step !== 'country' && (
