@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { Card } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import { X } from 'lucide-react';
@@ -13,10 +12,10 @@ interface BusinessFiltersProps {
 }
 
 const CATEGORIES = [
-  { id: 'restaurant', label: 'Restaurants', icon: '🍽️' },
-  { id: 'shopping', label: 'Retail', icon: '🛍️' },
-  { id: 'services', label: 'Services', icon: '🔧' },
-  { id: 'entertainment', label: 'Entertainment', icon: '🎭' },
+  { id: 'restaurant', label: 'Restaurants' },
+  { id: 'shopping', label: 'Retail' },
+  { id: 'services', label: 'Services' },
+  { id: 'entertainment', label: 'Entertainment' },
 ];
 
 const PRICE_LEVELS = [
@@ -91,8 +90,7 @@ export function BusinessFilters({
   ];
 
   return (
-    <Card className="p-5 bg-card border border-border sticky top-32">
-      <div className="space-y-5">
+    <div className="space-y-5">
         {/* Active filter chips */}
         {hasActiveFilters && (
           <div className="space-y-2">
@@ -144,7 +142,6 @@ export function BusinessFilters({
                     : 'text-foreground hover:bg-muted'
                 }`}
               >
-                <span className="text-base leading-none">{cat.icon}</span>
                 {cat.label}
               </button>
             ))}
@@ -196,7 +193,6 @@ export function BusinessFilters({
             ))}
           </div>
         </div>
-      </div>
-    </Card>
+    </div>
   );
 }
