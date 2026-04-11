@@ -1,62 +1,34 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { fetchPlaceDetails } from '@/lib/places';
+import { requireGoogleMapsKey } from '@/lib/server/google-maps-route';
+import { placeDetailsQuerySchema } from '@/lib/schemas/places';
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
-  const placeId = searchParams.get('placeId');
+  const parsed = placeDetailsQuerySchema.safeParse({
+    placeId: searchParams.get('placeId') ?? '',
+  });
 
-  if (!placeId) {
+  if (!parsed.success) {
     return NextResponse.json(
       { error: 'Missing required parameter: placeId' },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
-  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY;
-  if (!apiKey) {
-    return NextResponse.json(
-      { error: 'API key not configured' },
-      { status: 500 }
-    );
+  const keyCheck = requireGoogleMapsKey();
+  if (!keyCheck.ok) {
+    return keyCheck.response;
   }
 
   try {
-    const fields = [
-      'name',
-      'formatted_address',
-      'geometry',
-      'rating',
-      'user_ratings_total',
-      'types',
-      'opening_hours',
-      'photos',
-      'formatted_phone_number',
-      'website',
-      'price_level',
-      'editorial_summary',
-    ];
-
-    const params = new URLSearchParams({
-      place_id: placeId,
-      key: apiKey,
-      fields: fields.join(','),
-    });
-
-    const response = await fetch(
-      `https://maps.googleapis.com/maps/api/place/details/json?${params}`
-    );
-
-    if (!response.ok) {
-      throw new Error(`Google Places API error: ${response.statusText}`);
-    }
-
-    const data = await response.json();
-
+    const data = await fetchPlaceDetails(parsed.data.placeId, keyCheck.apiKey);
     return NextResponse.json({ result: data.result, status: data.status });
   } catch (error) {
     console.error('Places API error:', error);
     return NextResponse.json(
       { error: 'Failed to fetch place details' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
