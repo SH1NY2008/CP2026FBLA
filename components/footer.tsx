@@ -8,6 +8,7 @@ const NAV_LINKS = [
   { label: 'Browse', href: '/browse' },
   { label: 'Deals', href: '/deals' },
   { label: 'Help', href: '/help' },
+  { label: 'Accessibility', href: '/accessibility' },
   { label: 'Resources', href: '/resources' },
   { label: 'About', href: '/dashboard' },
   { label: 'Contact', href: '/contact' },

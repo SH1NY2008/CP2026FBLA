@@ -177,3 +177,46 @@
   outline: 2px solid rgba(250, 250, 250, 0.3);
   outline-offset: 2px;
 }
+
+/* User preference: high contrast (toggled on /accessibility) */
+html.high-contrast.dark {
+  --background: #000000;
+  --foreground: #ffffff;
+  --card: #0a0a0a;
+  --card-foreground: #ffffff;
+  --popover: #000000;
+  --popover-foreground: #ffffff;
+  --primary: #ffffff;
+  --primary-foreground: #000000;
+  --secondary: #1a1a1a;
+  --secondary-foreground: #ffffff;
+  --muted: #1a1a1a;
+  --muted-foreground: #e5e5e5;
+  --accent: #ffffff;
+  --accent-foreground: #000000;
+  --border: #ffffff;
+  --input: #ffffff;
+  --ring: #ffff00;
+  --sidebar: #000000;
+  --sidebar-foreground: #ffffff;
+  --sidebar-border: #ffffff;
+  --sidebar-ring: #ffff00;
+}
+
+html.high-contrast :focus-visible {
+  outline: 3px solid #ffff00;
+  outline-offset: 3px;
+}
+
+/* User preference: reduce motion (toggled on /accessibility) */
+html.reduce-motion *,
+html.reduce-motion *::before,
+html.reduce-motion *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+}
+
+html.reduce-motion {
+  scroll-behavior: auto !important;
+}

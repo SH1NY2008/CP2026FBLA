@@ -4,6 +4,8 @@ import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
 import { SplashScreenProvider } from '@/components/ui/splash-screen-provider'
 import { Toaster } from '@/components/ui/sonner'
+import { AccessibilityProvider } from '@/components/accessibility/accessibility-provider'
+import { VoiceNavigationFab } from '@/components/accessibility/voice-navigation-fab'
 
 // Fonts are wired up for future use (e.g. mono for code blocks); body uses Tailwind's font-sans stack.
 const _geist = Geist({ subsets: ["latin"] });
@@ -42,7 +44,10 @@ export default function RootLayout({
     <html lang="en" className="dark" suppressHydrationWarning>
       <body className="font-sans antialiased bg-background text-foreground">
         <SplashScreenProvider>
-          {children}
+          <AccessibilityProvider>
+            {children}
+            <VoiceNavigationFab />
+          </AccessibilityProvider>
         </SplashScreenProvider>
         {/* Sonner: toast notifications from explore, trip planner, deals, etc. */}
         <Toaster richColors position="bottom-right" />

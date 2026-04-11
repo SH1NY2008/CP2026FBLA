@@ -23,7 +23,7 @@ const NAV_LINKS = [
   { label: 'Deals', href: '/deals' },
   { label: 'Trip Planner', href: '/trip-planner' },
   { label: 'Portal', href: '/portal' },
-  { label: 'Help', href: '/help' },
+  { label: 'Accessibility', href: '/accessibility' },
 ];
 
 export function Header() {
