@@ -123,3 +123,7 @@
     @apply bg-background text-foreground;
   }
 }
+
+.custom-checkbox {
+  accent-color: #9ca3af;
+}

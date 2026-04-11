@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Container } from '@/components/ui/container';
 import { Header } from '@/components/header';
+import { LocationTag } from '@/components/ui/location-tag';
 
 import { LocationDetector } from '@/components/location-detector';
 import { BusinessFilters } from '@/components/business-filters';
@@ -28,6 +29,14 @@ interface Business {
   distance?: number;
 }
 
+interface Location {
+  lat: number;
+  lng: number;
+  address: string;
+  city: string;
+  country: string;
+}
+
 const TYPE_MAP: { [key: string]: string } = {
   restaurant: 'restaurant',
   shopping: 'shopping_mall|store|supermarket',
@@ -36,7 +45,7 @@ const TYPE_MAP: { [key: string]: string } = {
 };
 
 export default function BrowsePage() {
-  const [location, setLocation] = useState<{ lat: number; lng: number; address: string } | null>(null);
+  const [location, setLocation] = useState<Location | null>(null);
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -138,18 +147,20 @@ export default function BrowsePage() {
         {!location && (
           <div className="mb-8 max-w-2xl">
             <LocationDetector
-              onLocationFound={(lat, lng, address) => {
-                setLocation({ lat, lng, address });
+              onLocationFound={(location) => {
+                setLocation(location);
               }}
             />
           </div>
         )}
 
         {location && (
-          <div className="mb-8 p-4 bg-secondary border border-border rounded-lg">
-            <p className="text-sm font-medium text-foreground">
-              📍 Showing results near: <span className="text-accent font-semibold">{location.address}</span>
-            </p>
+          <div className="mb-8">
+            <LocationTag 
+              city={location.city} 
+              country={location.country} 
+              timezone={Intl.DateTimeFormat().resolvedOptions().timeZone.split('/').pop()?.replace('_', ' ')}
+            />
           </div>
         )}
 

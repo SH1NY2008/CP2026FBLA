@@ -5,8 +5,16 @@ import { Button } from '@/components/ui/button';
 import { AlertCircle, Loader2, MapPin } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
+interface Location {
+  lat: number;
+  lng: number;
+  address: string;
+  city: string;
+  country: string;
+}
+
 interface LocationDetectorProps {
-  onLocationFound: (lat: number, lng: number, address: string) => void;
+  onLocationFound: (location: Location) => void;
 }
 
 export function LocationDetector({ onLocationFound }: LocationDetectorProps) {
@@ -28,17 +36,33 @@ export function LocationDetector({ onLocationFound }: LocationDetectorProps) {
       async (position) => {
         const { latitude, longitude } = position.coords;
         
-        // Try to get address from reverse geocoding
         try {
           const response = await fetch(
-            `/api/places/nearby?lat=${latitude}&lng=${longitude}&radius=1&type=point_of_interest`
+            `/api/places/reverse-geocode?lat=${latitude}&lng=${longitude}`
           );
           const data = await response.json();
-          const address = data.results?.[0]?.address || 'Your location';
-          onLocationFound(latitude, longitude, address);
-          setHasLocation(true);
+
+          if (response.ok) {
+            const locationData = {
+              lat: latitude,
+              lng: longitude,
+              address: data.address || `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`,
+              city: data.city || '',
+              country: data.country || '',
+            };
+            onLocationFound(locationData);
+            setHasLocation(true);
+          } else {
+            throw new Error(data.error || 'Failed to fetch address');
+          }
         } catch (err) {
-          onLocationFound(latitude, longitude, `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
+          onLocationFound({
+            lat: latitude,
+            lng: longitude,
+            address: `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`,
+            city: '',
+            country: '',
+          });
           setHasLocation(true);
         }
 

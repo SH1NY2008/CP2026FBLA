@@ -1,28 +1,56 @@
-import { LoginForm } from "@/components/login-form"
-import Link from "next/link"
+'use client'
+
+import { SignInPage } from "@/components/ui/sign-in";
+import { auth, googleProvider } from "@/firebase";
+import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
+  const router = useRouter();
+
+  const handleSignIn = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      router.push("/");
+    } catch (error: any) {
+      console.error("Error signing in:", error);
+      alert(`Sign-In failed. Please check your credentials and the console for details. Error: ${error.message}`);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    try {
+      await signInWithPopup(auth, googleProvider);
+      router.push("/");
+    } catch (error: any) {
+      if (error.code !== 'auth/cancelled-popup-request') {
+        console.error('Error signing in with Google:', error);
+        alert(`Google Sign-In failed. Please check the console for details. Common issues include not enabling Google Sign-In in the Firebase console or missing environment variables. Error: ${error.message}`);
+      }
+    }
+  };
+
+  const handleResetPassword = () => {
+    // For now, just log to the console. A real implementation would redirect to a password reset page.
+    console.log("Reset password clicked");
+    // router.push("/reset-password");
+  };
+
+  const handleCreateAccount = () => {
+    router.push("/signup");
+  };
+
+
   return (
-    <div className="grid min-h-svh lg:grid-cols-2">
-      <div className="flex flex-col gap-4 p-6 md:p-10">
-        <div className="flex justify-center gap-2 md:justify-start">
-          <Link href="/" className="font-black text-xl text-foreground tracking-tight">
-            BOOST
-          </Link>
-        </div>
-        <div className="flex flex-1 items-center justify-center">
-          <div className="w-full max-w-xs">
-            <LoginForm />
-          </div>
-        </div>
-      </div>
-      <div className="relative hidden bg-muted lg:block">
-        <img
-          src="/placeholder.svg"
-          alt="Image"
-          className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
-        />
-      </div>
-    </div>
-  )
+    <SignInPage 
+      onSignIn={handleSignIn}
+      onGoogleSignIn={handleGoogleSignIn}
+      onResetPassword={handleResetPassword}
+      onCreateAccount={handleCreateAccount}
+    />
+  );
 }
