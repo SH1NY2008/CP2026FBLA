@@ -26,8 +26,8 @@ export function Header() {
         <Link href="/deals" className="text-muted-foreground hover:text-foreground transition-colors">
           Deals
         </Link>
-        <Link href="/bookmarks" className="text-muted-foreground hover:text-foreground transition-colors">
-          Bookmarks
+        <Link href="/dashboard" className="text-muted-foreground hover:text-foreground transition-colors">
+          Dashboard
         </Link>
         
         {user ? (

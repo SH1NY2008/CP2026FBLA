@@ -50,6 +50,55 @@ import {
   onSnapshot,
   serverTimestamp,
 } from 'firebase/firestore';
+
+// Writes activity to userActivity/{uid} so the dashboard can read metrics
+async function trackUserCheckin(uid: string, placeId: string, types: string[]) {
+  const ref = doc(db, 'userActivity', uid);
+  const snap = await getDoc(ref);
+  const typeMap: Record<string, number> = {};
+  types.forEach(t => { typeMap[t] = increment(1) as unknown as number; });
+
+  if (snap.exists()) {
+    await updateDoc(ref, {
+      checkinCount: increment(1),
+      checkedInPlaces: arrayUnion(placeId),
+      ...Object.fromEntries(
+        types.map(t => [`placeTypes.${t}`, increment(1)])
+      ),
+    });
+  } else {
+    const initialTypes: Record<string, number> = {};
+    types.forEach(t => { initialTypes[t] = 1; });
+    await setDoc(ref, {
+      checkinCount: 1,
+      checkedInPlaces: [placeId],
+      ratingCount: 0,
+      placeTypes: initialTypes,
+    });
+  }
+}
+
+async function trackUserRating(uid: string, placeId: string, types: string[]) {
+  const ref = doc(db, 'userActivity', uid);
+  const snap = await getDoc(ref);
+
+  if (snap.exists()) {
+    await updateDoc(ref, {
+      ratingCount: increment(1),
+      ratedPlaces: arrayUnion(placeId),
+    });
+  } else {
+    const initialTypes: Record<string, number> = {};
+    types.forEach(t => { initialTypes[t] = 1; });
+    await setDoc(ref, {
+      checkinCount: 0,
+      checkedInPlaces: [],
+      ratingCount: 1,
+      ratedPlaces: [placeId],
+      placeTypes: initialTypes,
+    });
+  }
+}
 import { ref as storageRef, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '@/firebase';
 import { Button } from '@/components/ui/button';
@@ -358,6 +407,9 @@ export default function BusinessDetailsPage() {
     setDisplayRatingCount(cnt + 1);
     setIsRatingDialogOpen(false);
     toast.success('Rating submitted!');
+    if (user) {
+      try { await trackUserRating(user.uid, placeId, business?.types ?? []); } catch {}
+    }
   };
 
   const handleShare = useCallback(async () => {
@@ -382,6 +434,7 @@ export default function BusinessDetailsPage() {
     setCheckinCount((c) => c + 1);
     setHasCheckedIn(true);
     toast.success("Checked in! You've been here.");
+    try { await trackUserCheckin(user.uid, placeId, business?.types ?? []); } catch {}
   };
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {

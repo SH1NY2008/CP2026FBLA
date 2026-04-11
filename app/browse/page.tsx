@@ -5,6 +5,7 @@ import { Container } from '@/components/ui/container';
 import { Header } from '@/components/header';
 import { LocationTag } from '@/components/ui/location-tag';
 import { LocationDetector } from '@/components/location-detector';
+import { CountryBrowser } from '@/components/country-browser';
 import { BusinessFilters } from '@/components/business-filters';
 import { BusinessCard } from '@/components/business-card';
 import { BusinessCardSkeleton } from '@/components/business-card-skeleton';
@@ -343,11 +344,14 @@ export default function BrowsePage() {
 
         {/* Location setup */}
         {!location && (
-          <div className="mb-10 max-w-xl">
+          <div className="mb-10 max-w-3xl">
             <p className="text-sm font-medium text-muted-foreground mb-4">
               Where are you looking?
             </p>
-            <LocationDetector onLocationFound={setLocation} />
+            <div className="space-y-4">
+              <LocationDetector onLocationFound={setLocation} />
+              <CountryBrowser onLocationFound={setLocation} />
+            </div>
           </div>
         )}
 
