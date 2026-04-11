@@ -29,7 +29,10 @@ import {
   Activity,
   Hash,
   ChevronRight,
+  Heart,
+  Tag,
 } from 'lucide-react';
+import { DEALS_BY_ID, type Deal } from '@/lib/deals-data';
 
 interface UserActivity {
   checkinCount: number;
@@ -113,6 +116,7 @@ export default function DashboardPage() {
   const [photoCount, setPhotoCount] = useState(0);
   const [bookmarkedBusinesses, setBookmarkedBusinesses] = useState<BookmarkedBusiness[]>([]);
   const [bookmarkIds, setBookmarkIds] = useState<string[]>([]);
+  const [savedDeals, setSavedDeals] = useState<Deal[]>([]);
   const [loading, setLoading] = useState(true);
   const [bookmarksLoading, setBookmarksLoading] = useState(false);
 
@@ -124,15 +128,19 @@ export default function DashboardPage() {
     const load = async () => {
       setLoading(true);
       try {
-        const [actSnap, bookmarkSnap] = await Promise.all([
+        const [actSnap, bookmarkSnap, savedDealsSnap] = await Promise.all([
           getDoc(doc(db, 'userActivity', user.uid)),
           getDoc(doc(db, 'bookmarks', user.uid)),
+          getDoc(doc(db, 'savedDeals', user.uid)),
         ]);
 
         if (actSnap.exists()) setActivity(actSnap.data() as UserActivity);
 
         const ids: string[] = bookmarkSnap.exists() ? (bookmarkSnap.data().placeIds ?? []) : [];
         setBookmarkIds(ids);
+
+        const dealIds: string[] = savedDealsSnap.exists() ? (savedDealsSnap.data().dealIds ?? []) : [];
+        setSavedDeals(dealIds.map((id) => DEALS_BY_ID[id]).filter(Boolean) as Deal[]);
 
         const [commentsSnap, photosSnap] = await Promise.all([
           getDocs(query(collection(db, 'comments'), where('authorId', '==', user.uid))),
@@ -457,6 +465,84 @@ export default function DashboardPage() {
             </div>
           )}
         </section>
+
+        {/* Saved Deals section */}
+        {!loading && (
+          <section className="mt-10">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                <Heart className="h-3.5 w-3.5" />
+                Saved Deals
+                {savedDeals.length > 0 && (
+                  <span className="ml-1 text-foreground">{savedDeals.length}</span>
+                )}
+              </h2>
+              <Link
+                href="/deals"
+                className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Browse deals
+                <ChevronRight className="h-3.5 w-3.5" />
+              </Link>
+            </div>
+
+            {savedDeals.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {savedDeals.map((deal) => {
+                  const pct = Math.round((1 - deal.salePrice / deal.originalPrice) * 100);
+                  const fmt = (p: number) => p % 1 === 0 ? `$${p}` : `$${p.toFixed(2)}`;
+                  return (
+                    <div key={deal.id} className="bg-card rounded-2xl overflow-hidden border border-border flex flex-col hover:shadow-md transition-shadow">
+                      <div className="relative aspect-[4/3] overflow-hidden bg-muted">
+                        <img src={deal.imageUrl} alt={deal.title} className="w-full h-full object-cover" />
+                        {deal.isPopularGift && (
+                          <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-white text-gray-800 text-xs font-semibold px-2.5 py-1 rounded-full shadow-sm">
+                            🎁 Popular Gift
+                          </div>
+                        )}
+                        <div className="absolute top-3 right-3 h-7 w-7 flex items-center justify-center rounded-full bg-red-500 shadow-sm">
+                          <Heart className="h-3.5 w-3.5 fill-white text-white" />
+                        </div>
+                      </div>
+                      <div className="p-3 flex flex-col gap-1.5 flex-1">
+                        <p className="text-xs text-muted-foreground font-medium">{deal.business}</p>
+                        <p className="text-sm font-bold text-foreground leading-snug line-clamp-2">{deal.title}</p>
+                        <div className="mt-auto pt-1 flex items-center gap-2 flex-wrap">
+                          <span className="text-xs text-muted-foreground line-through">{fmt(deal.originalPrice)}</span>
+                          <span className="text-sm font-bold text-foreground">{fmt(deal.salePrice)}</span>
+                          <span className="text-xs font-semibold text-emerald-600 bg-emerald-500/10 px-1.5 py-0.5 rounded-md">-{pct}%</span>
+                        </div>
+                        {deal.promoPrice && deal.promoCode && (
+                          <div className="flex items-center gap-1 text-xs text-purple-500 font-semibold">
+                            <Tag className="h-3 w-3" />
+                            {fmt(deal.promoPrice)} with code <span className="uppercase">{deal.promoCode}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-16 text-center border border-dashed border-border rounded-xl">
+                <div className="p-4 rounded-full bg-muted mb-3">
+                  <Heart className="h-7 w-7 text-muted-foreground" />
+                </div>
+                <p className="font-semibold text-foreground mb-1">No saved deals yet</p>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Heart any deal to save it here for easy access.
+                </p>
+                <Link
+                  href="/deals"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-foreground text-background text-sm font-semibold hover:opacity-90 transition-opacity"
+                >
+                  Browse Deals
+                  <ChevronRight className="h-4 w-4" />
+                </Link>
+              </div>
+            )}
+          </section>
+        )}
 
       </Container>
     </main>
