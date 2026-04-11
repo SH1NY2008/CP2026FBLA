@@ -9,7 +9,6 @@ import {
   query,
   where,
   getDocs,
-  orderBy,
   serverTimestamp,
   Timestamp,
 } from 'firebase/firestore';
@@ -203,10 +202,15 @@ export async function getDealsForBusiness(placeId: string): Promise<BusinessDeal
   const q = query(
     collection(db, 'businessDeals'),
     where('placeId', '==', placeId),
-    orderBy('createdAt', 'desc'),
   );
   const snap = await getDocs(q);
-  return snap.docs.map((d) => ({ id: d.id, ...d.data() } as BusinessDeal));
+  return snap.docs
+    .map((d) => ({ id: d.id, ...d.data() } as BusinessDeal))
+    .sort((a, b) => {
+      const ta = (a.createdAt as any)?.seconds ?? 0;
+      const tb = (b.createdAt as any)?.seconds ?? 0;
+      return tb - ta;
+    });
 }
 
 export async function updateDeal(dealId: string, data: Partial<BusinessDeal>): Promise<void> {
@@ -243,10 +247,15 @@ export async function getAnnouncementsForBusiness(placeId: string): Promise<Busi
   const q = query(
     collection(db, 'businessAnnouncements'),
     where('placeId', '==', placeId),
-    orderBy('createdAt', 'desc'),
   );
   const snap = await getDocs(q);
-  return snap.docs.map((d) => ({ id: d.id, ...d.data() } as BusinessAnnouncement));
+  return snap.docs
+    .map((d) => ({ id: d.id, ...d.data() } as BusinessAnnouncement))
+    .sort((a, b) => {
+      const ta = (a.createdAt as any)?.seconds ?? 0;
+      const tb = (b.createdAt as any)?.seconds ?? 0;
+      return tb - ta;
+    });
 }
 
 export async function deleteAnnouncement(id: string): Promise<void> {
@@ -271,10 +280,11 @@ export async function getEventsForBusiness(placeId: string): Promise<BusinessEve
   const q = query(
     collection(db, 'businessEvents'),
     where('placeId', '==', placeId),
-    orderBy('date', 'asc'),
   );
   const snap = await getDocs(q);
-  return snap.docs.map((d) => ({ id: d.id, ...d.data() } as BusinessEvent));
+  return snap.docs
+    .map((d) => ({ id: d.id, ...d.data() } as BusinessEvent))
+    .sort((a, b) => (a.date > b.date ? 1 : -1));
 }
 
 export async function deleteEvent(id: string): Promise<void> {
@@ -329,10 +339,15 @@ export async function getInquiriesForBusiness(placeId: string): Promise<Business
   const q = query(
     collection(db, 'businessInquiries'),
     where('placeId', '==', placeId),
-    orderBy('createdAt', 'desc'),
   );
   const snap = await getDocs(q);
-  return snap.docs.map((d) => ({ id: d.id, ...d.data() } as BusinessInquiry));
+  return snap.docs
+    .map((d) => ({ id: d.id, ...d.data() } as BusinessInquiry))
+    .sort((a, b) => {
+      const ta = (a.createdAt as any)?.seconds ?? 0;
+      const tb = (b.createdAt as any)?.seconds ?? 0;
+      return tb - ta;
+    });
 }
 
 export async function markInquiryRead(id: string): Promise<void> {

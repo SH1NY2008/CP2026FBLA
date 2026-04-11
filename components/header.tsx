@@ -17,6 +17,7 @@ import { useState } from 'react';
 
 const NAV_LINKS = [
   { label: 'Browse', href: '/browse' },
+  { label: 'Explore', href: '/explore' },
   { label: 'Deals', href: '/deals' },
   { label: 'Trip Planner', href: '/trip-planner' },
   { label: 'Portal', href: '/portal' },
@@ -28,7 +29,7 @@ export function Header() {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/90 border-b border-border/40 backdrop-blur-xl">
-      <nav className="max-w-7xl mx-auto grid grid-cols-3 items-center px-6 h-16">
+      <nav className="max-w-7xl mx-auto flex items-center justify-between px-6 h-16">
         {/* Logo */}
         <Link
           href="/"
@@ -37,13 +38,13 @@ export function Header() {
           BOOST
         </Link>
 
-        {/* Desktop nav links — truly centered */}
-        <div className="hidden md:flex items-center justify-center gap-1">
+        {/* Desktop nav links */}
+        <div className="hidden md:flex items-center gap-1">
           {NAV_LINKS.map(({ label, href }) => (
             <Link
               key={href}
               href={href}
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors px-4 py-2 rounded-full hover:bg-secondary/60"
+              className="whitespace-nowrap text-sm text-muted-foreground hover:text-foreground transition-colors px-3 py-2 rounded-full hover:bg-secondary/60"
             >
               {label}
             </Link>
@@ -70,6 +71,9 @@ export function Header() {
                 )}
                 <DropdownMenuItem asChild>
                   <Link href="/dashboard">Dashboard</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/explore">AI Explorer</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link href="/trip-planner">Trip Planner</Link>
