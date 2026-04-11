@@ -424,6 +424,17 @@ export default function BusinessDetailsPage() {
 
   // ── Render ────────────────────────────────────────────────────────────────
 
+  // Shared review dialog (single instance, shared via open/onOpenChange)
+  const ReviewDialog = ({ trigger }: { trigger: React.ReactNode }) => (
+    <Dialog open={isRatingDialogOpen} onOpenChange={setIsRatingDialogOpen}>
+      <DialogTrigger asChild>{trigger}</DialogTrigger>
+      <DialogContent>
+        <DialogHeader><DialogTitle>Leave a Rating</DialogTitle></DialogHeader>
+        <ReviewForm businessId={placeId} onSuccess={handleReviewSuccess} />
+      </DialogContent>
+    </Dialog>
+  );
+
   return (
     <main className="min-h-screen bg-background text-foreground">
       <Header />
@@ -440,7 +451,7 @@ export default function BusinessDetailsPage() {
 
       {business && (
         <>
-          {/* ── Photo Gallery ─────────────────────────────────────────────── */}
+          {/* ── Photo Gallery ─────────────────────────────────────────── */}
           <div className="pt-20">
             <Container className="max-w-6xl pt-4">
               <div className="relative grid grid-cols-4 grid-rows-2 gap-1.5 h-[400px] overflow-hidden rounded-xl">
@@ -458,7 +469,6 @@ export default function BusinessDetailsPage() {
                       fill
                       className="object-cover group-hover:scale-105 transition-transform duration-500"
                     />
-                    {/* "See all N photos" badge on last tile */}
                     {i === 4 && (
                       <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                         <Images className="h-5 w-5 text-white" />
@@ -467,14 +477,11 @@ export default function BusinessDetailsPage() {
                         </span>
                       </div>
                     )}
-                    {/* Hover dim on non-last tiles */}
                     {i !== 4 && (
                       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-200" />
                     )}
                   </button>
                 ))}
-
-                {/* Photo count badge (bottom-right corner of grid) */}
                 {business.photos?.length > 0 && (
                   <button
                     onClick={() => openPhoto(0)}
@@ -484,7 +491,6 @@ export default function BusinessDetailsPage() {
                     {business.photos.length} photos
                   </button>
                 )}
-
                 {(!business.photos || business.photos.length === 0) && (
                   <div className="col-span-4 row-span-2 flex items-center justify-center bg-muted text-muted-foreground">
                     <MapPin className="h-12 w-12 opacity-30" />
@@ -496,32 +502,26 @@ export default function BusinessDetailsPage() {
 
           <Container className="max-w-6xl py-8">
 
-            {/* ── Business Header ───────────────────────────────────────────── */}
-            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-4">
+            {/* ── Page header: name + rating + chips + actions ──────────── */}
+            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-8 pb-6 border-b border-border">
               <div className="flex-1 min-w-0">
-                <h1 className="text-4xl font-bold text-foreground leading-tight mb-3">
+                <h1 className="text-4xl font-bold text-foreground leading-tight mb-2">
                   {business.name}
                 </h1>
 
-                {/* Rating row */}
-                <Dialog open={isRatingDialogOpen} onOpenChange={setIsRatingDialogOpen}>
-                  <DialogTrigger asChild>
-                    <button className="flex items-center gap-2.5 mb-3 group">
-                      <StarRating rating={rating} size="md" />
-                      <span className="text-lg font-bold text-foreground">{rating.toFixed(1)}</span>
-                      <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">
-                        ({ratingCount.toLocaleString()} {ratingCount === 1 ? 'review' : 'reviews'})
-                      </span>
-                      <span className="text-sm font-medium text-muted-foreground">
-                        · {getRatingLabel(rating)}
-                      </span>
-                    </button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader><DialogTitle>Leave a Rating</DialogTitle></DialogHeader>
-                    <ReviewForm businessId={placeId} onSuccess={handleReviewSuccess} />
-                  </DialogContent>
-                </Dialog>
+                {/* Clickable rating row */}
+                <ReviewDialog trigger={
+                  <button className="flex items-center gap-2.5 mb-3 group">
+                    <StarRating rating={rating} size="md" />
+                    <span className="text-lg font-bold text-foreground">{rating.toFixed(1)}</span>
+                    <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">
+                      ({ratingCount.toLocaleString()} {ratingCount === 1 ? 'review' : 'reviews'})
+                    </span>
+                    <span className="text-sm font-medium text-muted-foreground">
+                      · {getRatingLabel(rating)}
+                    </span>
+                  </button>
+                } />
 
                 {/* Meta chips */}
                 <div className="flex items-center gap-2 flex-wrap">
@@ -530,8 +530,6 @@ export default function BusinessDetailsPage() {
                       {t}
                     </span>
                   ))}
-
-                  {/* Price chip with tooltip */}
                   {business.price_level > 0 && (
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -539,21 +537,15 @@ export default function BusinessDetailsPage() {
                           {PRICE_DISPLAY[business.price_level]}
                         </span>
                       </TooltipTrigger>
-                      <TooltipContent side="bottom">
-                        {PRICE_TOOLTIP[business.price_level]}
-                      </TooltipContent>
+                      <TooltipContent side="bottom">{PRICE_TOOLTIP[business.price_level]}</TooltipContent>
                     </Tooltip>
                   )}
-
-                  {/* Open/closed with "until" time */}
                   {business.opening_hours && (
-                    <span
-                      className={`flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full ${
-                        business.opening_hours.open_now
-                          ? 'bg-green-500/10 border border-green-500/30 text-green-500'
-                          : 'bg-red-500/10 border border-red-500/30 text-red-400'
-                      }`}
-                    >
+                    <span className={`flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full ${
+                      business.opening_hours.open_now
+                        ? 'bg-green-500/10 border border-green-500/30 text-green-500'
+                        : 'bg-red-500/10 border border-red-500/30 text-red-400'
+                    }`}>
                       <Clock className="h-3 w-3 shrink-0" />
                       {getOpenUntilText(business.opening_hours)}
                     </span>
@@ -564,292 +556,268 @@ export default function BusinessDetailsPage() {
               {/* Action buttons */}
               <div className="flex items-center gap-2 flex-wrap shrink-0">
                 {user && (
-                  <Button
-                    variant="outline"
-                    onClick={handleBookmark}
-                    className={`gap-2 ${isBookmarked ? 'border-accent text-accent' : ''}`}
-                  >
+                  <Button variant="outline" onClick={handleBookmark}
+                    className={`gap-2 ${isBookmarked ? 'border-accent text-accent' : ''}`}>
                     <Bookmark className={`h-4 w-4 ${isBookmarked ? 'fill-accent' : ''}`} />
                     {isBookmarked ? 'Saved' : 'Save'}
                   </Button>
                 )}
-
-                <a href={directionsUrl} target="_blank" rel="noopener noreferrer">
-                  <Button variant="outline" className="gap-2">
-                    <Navigation className="h-4 w-4" />
-                    Directions
-                  </Button>
-                </a>
-
                 <Button variant="outline" onClick={handleShare} className="gap-2">
                   <Share2 className="h-4 w-4" />
                   Share
                 </Button>
-
-                <Dialog open={isRatingDialogOpen} onOpenChange={setIsRatingDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button className="gap-2">
-                      <PencilLine className="h-4 w-4" />
-                      Write a review
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader><DialogTitle>Leave a Rating</DialogTitle></DialogHeader>
-                    <ReviewForm businessId={placeId} onSuccess={handleReviewSuccess} />
-                  </DialogContent>
-                </Dialog>
+                <ReviewDialog trigger={
+                  <Button className="gap-2">
+                    <PencilLine className="h-4 w-4" />
+                    Write a review
+                  </Button>
+                } />
               </div>
             </div>
 
-            {/* ── Check-in strip ─────────────────────────────────────────────── */}
-            <div className="flex items-center gap-3 mb-6 py-3 px-4 rounded-xl border border-border bg-card">
-              <Users className="h-4 w-4 text-muted-foreground shrink-0" />
-              <span className="text-sm text-muted-foreground flex-1">
-                {checkinCount > 0
-                  ? <><span className="font-semibold text-foreground">{checkinCount.toLocaleString()}</span> {checkinCount === 1 ? 'person has' : 'people have'} visited this place</>
-                  : 'Be the first to check in here!'
-                }
-                {hasCheckedIn && <span className="ml-2 text-green-500 font-medium">· You've been here ✓</span>}
-              </span>
-              <button
-                onClick={handleCheckin}
-                disabled={hasCheckedIn}
-                className={`flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-lg transition-all ${
-                  hasCheckedIn
-                    ? 'bg-green-500/10 text-green-500 cursor-default'
-                    : 'bg-accent text-accent-foreground hover:bg-accent/90'
-                }`}
-              >
-                <CheckCircle2 className="h-3.5 w-3.5" />
-                {hasCheckedIn ? "Checked in" : "Check in"}
-              </button>
-            </div>
+            {/* ── Two-column body ───────────────────────────────────────── */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 items-start">
 
-            {/* ── Weather & Air Quality ──────────────────────────────────────── */}
-            <div className="mb-6">
-              <LocationEnvPanel
-                lat={business.geometry.location.lat}
-                lng={business.geometry.location.lng}
-              />
-            </div>
+              {/* ── Main column ─────────────────────────────────────────── */}
+              <div className="lg:col-span-2 space-y-10">
 
-            {/* ── About / AI Summary ─────────────────────────────────────────── */}
-            {(business.summary || aiSummary || aiLoading) && (
-              <>
-                <section className="mb-8">
-                  <h2 className="text-xl font-bold text-foreground mb-3 flex items-center gap-2">
-                    {business.summary ? `About ${business.name}` : (
-                      <>
-                        <Sparkles className="h-4 w-4 text-accent" />
-                        AI Insights
-                      </>
+                {/* About / AI Summary */}
+                {(business.summary || aiSummary || aiLoading) && (
+                  <section>
+                    <h2 className="text-xl font-bold text-foreground mb-3 flex items-center gap-2">
+                      {business.summary ? `About ${business.name}` : (
+                        <><Sparkles className="h-4 w-4 text-accent" />AI Insights</>
+                      )}
+                    </h2>
+                    {aiLoading && !business.summary ? (
+                      <div className="flex items-center gap-2 text-muted-foreground text-sm">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Generating insights…
+                      </div>
+                    ) : (
+                      <p className="text-muted-foreground leading-relaxed">
+                        {business.summary?.overview ?? aiSummary}
+                      </p>
                     )}
-                  </h2>
-                  {aiLoading && !business.summary ? (
-                    <div className="flex items-center gap-2 text-muted-foreground text-sm">
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      Generating insights…
+                  </section>
+                )}
+
+                {/* Reviews */}
+                <section>
+                  <div className="flex items-center justify-between mb-5">
+                    <h2 className="text-2xl font-bold text-foreground">Reviews</h2>
+                    <ReviewDialog trigger={
+                      <Button variant="outline" size="sm" className="gap-2">
+                        <PencilLine className="h-3.5 w-3.5" />
+                        Write a review
+                      </Button>
+                    } />
+                  </div>
+
+                  {/* Rating summary */}
+                  <div className="flex items-center gap-6 p-5 rounded-xl border border-border bg-card mb-6">
+                    <div className="flex flex-col items-center gap-1 shrink-0">
+                      <span className="text-5xl font-bold text-foreground tabular-nums">
+                        {rating.toFixed(1)}
+                      </span>
+                      <StarRating rating={rating} size="sm" />
+                      <span className="text-xs font-medium text-muted-foreground mt-0.5">
+                        {getRatingLabel(rating)}
+                      </span>
+                    </div>
+                    <div className="h-12 w-px bg-border" />
+                    <p className="text-sm text-muted-foreground">
+                      Based on{' '}
+                      <span className="font-semibold text-foreground">{ratingCount.toLocaleString()}</span>
+                      {' '}{ratingCount === 1 ? 'review' : 'reviews'}
+                    </p>
+                  </div>
+
+                  <CommentSection placeId={placeId} />
+                </section>
+
+                {/* Traveler Photos */}
+                <section>
+                  <div className="flex items-center justify-between mb-5">
+                    <h2 className="text-2xl font-bold text-foreground">
+                      Traveler Photos
+                      {communityPhotos.length > 0 && (
+                        <span className="ml-2 text-base font-normal text-muted-foreground">
+                          ({communityPhotos.length})
+                        </span>
+                      )}
+                    </h2>
+                    {user && (
+                      <div className="relative">
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept="image/*"
+                          className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                          onChange={handlePhotoUpload}
+                          disabled={uploadProgress !== null}
+                        />
+                        <Button variant="outline" size="sm" className="gap-2 pointer-events-none">
+                          <Camera className="h-3.5 w-3.5" />
+                          {uploadProgress !== null ? `Uploading ${uploadProgress}%` : 'Add photo'}
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+
+                  {communityPhotos.length > 0 ? (
+                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                      {communityPhotos.map((photo) => (
+                        <a key={photo.id} href={photo.url} target="_blank" rel="noopener noreferrer"
+                          className="relative aspect-square rounded-lg overflow-hidden bg-muted group">
+                          <Image src={photo.url} alt={`Photo by ${photo.author}`} fill
+                            className="object-cover group-hover:scale-105 transition-transform duration-300" />
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-200" />
+                          <div className="absolute bottom-0 left-0 right-0 px-1.5 py-1 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                            <p className="text-white text-[10px] truncate">{photo.author}</p>
+                          </div>
+                        </a>
+                      ))}
                     </div>
                   ) : (
-                    <p className="text-muted-foreground leading-relaxed max-w-3xl">
-                      {business.summary?.overview ?? aiSummary}
-                    </p>
+                    <div className="flex flex-col items-center justify-center py-10 text-center border border-dashed border-border rounded-xl bg-muted/30">
+                      <Camera className="h-7 w-7 text-muted-foreground/40 mb-2" />
+                      <p className="text-sm font-medium text-muted-foreground">No community photos yet</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {user ? 'Be the first to share a photo!' : 'Sign in to upload photos'}
+                      </p>
+                    </div>
                   )}
                 </section>
-                <Separator className="mb-10" />
-              </>
-            )}
 
-            {/* ── Reviews ───────────────────────────────────────────────────── */}
-            <section className="mb-10">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-foreground">Reviews</h2>
-                <Dialog open={isRatingDialogOpen} onOpenChange={setIsRatingDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button variant="outline" className="gap-2">
-                      <PencilLine className="h-4 w-4" />
-                      Write a review
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader><DialogTitle>Leave a Rating</DialogTitle></DialogHeader>
-                    <ReviewForm businessId={placeId} onSuccess={handleReviewSuccess} />
-                  </DialogContent>
-                </Dialog>
-              </div>
-
-              <div className="flex items-center gap-6 p-5 rounded-xl border border-border bg-card mb-8">
-                <div className="flex flex-col items-center gap-1 shrink-0">
-                  <span className="text-5xl font-bold text-foreground tabular-nums">
-                    {rating.toFixed(1)}
-                  </span>
-                  <StarRating rating={rating} size="sm" />
-                  <span className="text-sm font-medium text-muted-foreground mt-0.5">
-                    {getRatingLabel(rating)}
-                  </span>
-                </div>
-                <div className="h-12 w-px bg-border" />
-                <p className="text-sm text-muted-foreground">
-                  Based on{' '}
-                  <span className="font-semibold text-foreground">
-                    {ratingCount.toLocaleString()}
-                  </span>{' '}
-                  {ratingCount === 1 ? 'review' : 'reviews'}
-                </p>
-              </div>
-
-              <CommentSection placeId={placeId} />
-            </section>
-
-            <Separator className="mb-10" />
-
-            {/* ── Community Photos ──────────────────────────────────────────── */}
-            <section className="mb-10">
-              <div className="flex items-center justify-between mb-5">
-                <h2 className="text-2xl font-bold text-foreground">
-                  Traveler Photos
-                  {communityPhotos.length > 0 && (
-                    <span className="ml-2 text-base font-normal text-muted-foreground">
-                      ({communityPhotos.length})
-                    </span>
-                  )}
-                </h2>
-                {user && (
-                  <div className="relative">
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/*"
-                      className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-                      onChange={handlePhotoUpload}
-                      disabled={uploadProgress !== null}
-                    />
-                    <Button variant="outline" className="gap-2 pointer-events-none">
-                      <Camera className="h-4 w-4" />
-                      {uploadProgress !== null ? `Uploading ${uploadProgress}%` : 'Add photo'}
-                    </Button>
-                  </div>
-                )}
-              </div>
-
-              {communityPhotos.length > 0 ? (
-                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
-                  {communityPhotos.map((photo) => (
-                    <a
-                      key={photo.id}
-                      href={photo.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="relative aspect-square rounded-lg overflow-hidden bg-muted group"
-                    >
-                      <Image
-                        src={photo.url}
-                        alt={`Photo by ${photo.author}`}
-                        fill
-                        className="object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-200" />
-                      <div className="absolute bottom-0 left-0 right-0 px-1.5 py-1 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
-                        <p className="text-white text-[10px] truncate">{photo.author}</p>
-                      </div>
-                    </a>
-                  ))}
-                </div>
-              ) : (
-                <div className="flex flex-col items-center justify-center py-12 text-center border border-dashed border-border rounded-xl bg-muted/30">
-                  <Camera className="h-8 w-8 text-muted-foreground/40 mb-2" />
-                  <p className="text-sm font-medium text-muted-foreground">No community photos yet</p>
-                  {user ? (
-                    <p className="text-xs text-muted-foreground mt-1">Be the first to share a photo!</p>
-                  ) : (
-                    <p className="text-xs text-muted-foreground mt-1">Sign in to upload photos</p>
-                  )}
-                </div>
-              )}
-            </section>
-
-            <Separator className="mb-10" />
-
-            {/* ── Location & Hours ──────────────────────────────────────────── */}
-            <section>
-              <h2 className="text-2xl font-bold text-foreground mb-6">The area</h2>
-
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div className="lg:col-span-2 space-y-4">
-                  <div className="flex items-start gap-3">
+                {/* Map — full width at the bottom of main column */}
+                <section>
+                  <h2 className="text-2xl font-bold text-foreground mb-5">The area</h2>
+                  <div className="flex items-start gap-3 mb-3">
                     <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
                     <div>
                       <a
                         href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(business.formatted_address)}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                        target="_blank" rel="noopener noreferrer"
                         className="font-medium text-foreground hover:underline"
                       >
                         {business.formatted_address}
                       </a>
                       {distance !== null && (
-                        <p className="text-sm text-muted-foreground mt-0.5">
-                          {distance.toFixed(1)} miles away
-                        </p>
+                        <p className="text-sm text-muted-foreground mt-0.5">{distance.toFixed(1)} miles away</p>
                       )}
                     </div>
                   </div>
-
-                  <div className="flex items-center gap-4 flex-wrap text-sm">
-                    {business.website && (
-                      <a href={business.website} target="_blank" rel="noopener noreferrer"
-                        className="flex items-center gap-1.5 text-accent hover:underline font-medium">
-                        <Globe className="h-3.5 w-3.5" />
-                        Visit website
-                        <ExternalLink className="h-3 w-3 opacity-60" />
-                      </a>
-                    )}
-                    {business.formatted_phone_number && (
-                      <a href={`tel:${business.formatted_phone_number}`}
-                        className="flex items-center gap-1.5 text-accent hover:underline font-medium">
-                        <Phone className="h-3.5 w-3.5" />
-                        {business.formatted_phone_number}
-                      </a>
-                    )}
-                  </div>
-
-                  <div className="aspect-video rounded-xl overflow-hidden border border-border mt-2">
+                  <div className="aspect-video rounded-xl overflow-hidden border border-border">
                     <BusinessMap
                       lat={business.geometry.location.lat}
                       lng={business.geometry.location.lng}
                       className="w-full h-full"
                     />
                   </div>
+                </section>
+
+              </div>
+
+              {/* ── Sticky sidebar ──────────────────────────────────────── */}
+              <aside className="lg:col-span-1 space-y-4 lg:sticky lg:top-28">
+
+                {/* Contact & Directions */}
+                <div className="rounded-xl border border-border bg-card p-4 space-y-3">
+                  <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                    Contact
+                  </h3>
+                  {business.formatted_phone_number && (
+                    <a href={`tel:${business.formatted_phone_number}`}
+                      className="flex items-center gap-2.5 text-sm text-foreground hover:text-accent transition-colors">
+                      <Phone className="h-4 w-4 text-muted-foreground shrink-0" />
+                      {business.formatted_phone_number}
+                    </a>
+                  )}
+                  {business.website && (
+                    <a href={business.website} target="_blank" rel="noopener noreferrer"
+                      className="flex items-center gap-2.5 text-sm text-foreground hover:text-accent transition-colors">
+                      <Globe className="h-4 w-4 text-muted-foreground shrink-0" />
+                      <span className="truncate">Visit website</span>
+                      <ExternalLink className="h-3 w-3 text-muted-foreground shrink-0 ml-auto" />
+                    </a>
+                  )}
+                  <a href={directionsUrl} target="_blank" rel="noopener noreferrer" className="block pt-1">
+                    <Button variant="outline" className="w-full gap-2">
+                      <Navigation className="h-4 w-4" />
+                      Get directions
+                    </Button>
+                  </a>
                 </div>
 
-                <div className="lg:col-span-1">
-                  {business.opening_hours?.weekday_text && (
-                    <div className="rounded-xl border border-border bg-card p-5">
-                      <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground mb-4">
-                        Hours
-                      </h3>
-                      <ul className="space-y-2.5">
-                        {business.opening_hours.weekday_text.map((dayStr, i) => {
-                          const [day, hours] = dayStr.split(': ');
-                          const dayOfWeekIdx = (i + 1) % 7;
-                          const isToday = dayOfWeekIdx === todayIdx;
-                          return (
-                            <li key={i} className={`flex justify-between text-sm gap-4 ${isToday ? 'font-semibold text-foreground' : 'text-muted-foreground'}`}>
-                              <span className={isToday ? 'text-accent' : ''}>{day}</span>
-                              <span className="text-right">{hours ?? '—'}</span>
-                            </li>
-                          );
-                        })}
-                      </ul>
+                {/* Hours */}
+                {business.opening_hours?.weekday_text && (
+                  <div className="rounded-xl border border-border bg-card p-4">
+                    <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3">
+                      Hours
+                    </h3>
+                    <ul className="space-y-2">
+                      {business.opening_hours.weekday_text.map((dayStr, i) => {
+                        const [day, hours] = dayStr.split(': ');
+                        const isToday = ((i + 1) % 7) === todayIdx;
+                        return (
+                          <li key={i} className={`flex justify-between text-sm gap-2 ${
+                            isToday ? 'font-semibold text-foreground' : 'text-muted-foreground'
+                          }`}>
+                            <span className={isToday ? 'text-accent' : ''}>{day}</span>
+                            <span className="text-right shrink-0">{hours ?? '—'}</span>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Check-in */}
+                <div className="rounded-xl border border-border bg-card p-4">
+                  <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3">
+                    Visits
+                  </h3>
+                  <div className="flex items-center gap-3 mb-3">
+                    <Users className="h-4 w-4 text-muted-foreground shrink-0" />
+                    <span className="text-sm text-muted-foreground flex-1">
+                      {checkinCount > 0 ? (
+                        <><span className="font-semibold text-foreground">{checkinCount.toLocaleString()}</span>{' '}
+                        {checkinCount === 1 ? 'person' : 'people'} visited</>
+                      ) : 'No check-ins yet'}
+                    </span>
+                  </div>
+                  {hasCheckedIn ? (
+                    <div className="flex items-center gap-2 text-sm font-medium text-green-500 py-1">
+                      <CheckCircle2 className="h-4 w-4" />
+                      You've been here
                     </div>
+                  ) : (
+                    <button onClick={handleCheckin}
+                      className="w-full flex items-center justify-center gap-2 text-sm font-medium px-3 py-2 rounded-lg bg-accent text-accent-foreground hover:bg-accent/90 transition-colors">
+                      <CheckCircle2 className="h-4 w-4" />
+                      Check in
+                    </button>
                   )}
                 </div>
-              </div>
-            </section>
+
+                {/* Weather & Air Quality */}
+                <div className="rounded-xl border border-border bg-card p-4">
+                  <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3">
+                    Conditions
+                  </h3>
+                  <LocationEnvPanel
+                    lat={business.geometry.location.lat}
+                    lng={business.geometry.location.lng}
+                  />
+                </div>
+
+              </aside>
+            </div>
 
           </Container>
 
-          {/* ── Photo Lightbox ─────────────────────────────────────────────── */}
+          {/* ── Photo Lightbox ─────────────────────────────────────────── */}
           {business.photos?.length > 0 && (
             <PhotoLightbox
               photos={business.photos}
