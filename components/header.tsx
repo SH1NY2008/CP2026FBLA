@@ -18,7 +18,8 @@ import { useState } from 'react';
 const NAV_LINKS = [
   { label: 'Browse', href: '/browse' },
   { label: 'Deals', href: '/deals' },
-  { label: 'Dashboard', href: '/dashboard' },
+  { label: 'Trip Planner', href: '/trip-planner' },
+  { label: 'Portal', href: '/portal' },
 ];
 
 export function Header() {
@@ -69,6 +70,12 @@ export function Header() {
                 )}
                 <DropdownMenuItem asChild>
                   <Link href="/dashboard">Dashboard</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/trip-planner">Trip Planner</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/portal">Business Portal</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => signOut(auth)}>Sign Out</DropdownMenuItem>
               </DropdownMenuContent>

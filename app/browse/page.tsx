@@ -11,6 +11,7 @@ import { BusinessCard } from '@/components/business-card';
 import { BusinessCardSkeleton } from '@/components/business-card-skeleton';
 import { TileMap } from '@/components/tile-map';
 import { LocationEnvPanel } from '@/components/location-env-panel';
+import { AreaInsights } from '@/components/area-insights';
 import { Input } from '@/components/ui/input';
 import {
   AlertCircle,
@@ -301,6 +302,21 @@ export default function BrowsePage() {
                   onRadiusChange={setRadius}
                   onPriceChange={setSelectedPrices}
                 />
+
+                {/* Area Insights */}
+                {location && (
+                  <div className="mt-6 pt-5 border-t border-border/50">
+                    <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4">
+                      Area Insights
+                    </p>
+                    <AreaInsights
+                      lat={location.lat}
+                      lng={location.lng}
+                      radius={Math.round(radius * 1609.34)}
+                      compact
+                    />
+                  </div>
+                )}
               </div>
             </aside>
 

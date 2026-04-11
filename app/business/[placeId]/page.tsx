@@ -33,6 +33,15 @@ import {
   Sparkles,
   Loader2,
   Users,
+  ShieldCheck,
+  Megaphone,
+  CalendarDays,
+  Tag,
+  Utensils,
+  DollarSign,
+  Mail,
+  Send,
+  ChevronRight,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import {
@@ -113,6 +122,26 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { toast } from 'sonner';
+import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
+import { SolarPanel } from '@/components/solar-panel';
+import { StreetView } from '@/components/street-view';
+import { AreaInsights } from '@/components/area-insights';
+import { TravelInfo } from '@/components/travel-info';
+import {
+  getClaimedBusiness,
+  getAnnouncementsForBusiness,
+  getEventsForBusiness,
+  getDealsForBusiness,
+  getOwnerRepliesForPlace,
+  sendInquiry,
+  rsvpToEvent,
+  type ClaimedBusiness,
+  type BusinessAnnouncement,
+  type BusinessEvent,
+  type BusinessDeal,
+  type OwnerReply,
+} from '@/lib/business-portal';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -276,6 +305,17 @@ export default function BusinessDetailsPage() {
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Business portal data
+  const [claimData, setClaimData] = useState<ClaimedBusiness | null>(null);
+  const [announcements, setAnnouncements] = useState<BusinessAnnouncement[]>([]);
+  const [events, setEvents] = useState<BusinessEvent[]>([]);
+  const [ownerDeals, setOwnerDeals] = useState<BusinessDeal[]>([]);
+  const [ownerReplies, setOwnerReplies] = useState<Record<string, OwnerReply>>({});
+  const [inquiryOpen, setInquiryOpen] = useState(false);
+  const [inquirySubject, setInquirySubject] = useState('');
+  const [inquiryMessage, setInquiryMessage] = useState('');
+  const [inquirySending, setInquirySending] = useState(false);
+
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY;
   const todayIdx = new Date().getDay();
 
@@ -380,6 +420,63 @@ export default function BusinessDetailsPage() {
     });
     return () => unsub();
   }, [placeId]);
+
+  // Load business portal data (claimed profile, announcements, events, deals, owner replies)
+  useEffect(() => {
+    if (!placeId) return;
+    const loadPortal = async () => {
+      try {
+        const claimed = await getClaimedBusiness(placeId);
+        setClaimData(claimed);
+        if (claimed) {
+          const [anns, evts, deals, replies] = await Promise.all([
+            getAnnouncementsForBusiness(placeId),
+            getEventsForBusiness(placeId),
+            getDealsForBusiness(placeId),
+            getOwnerRepliesForPlace(placeId),
+          ]);
+          setAnnouncements(anns);
+          setEvents(evts.filter((e) => new Date(e.date + 'T23:59:59') >= new Date()));
+          setOwnerDeals(deals.filter((d) => d.active));
+          const rMap: Record<string, OwnerReply> = {};
+          replies.forEach((r) => { rMap[r.commentId] = r; });
+          setOwnerReplies(rMap);
+        }
+      } catch { /* non-critical */ }
+    };
+    loadPortal();
+  }, [placeId]);
+
+  const handleSendInquiry = async () => {
+    if (!user) { toast.error('Sign in to send a message'); return; }
+    if (!inquirySubject.trim() || !inquiryMessage.trim()) { toast.error('Fill in all fields'); return; }
+    setInquirySending(true);
+    try {
+      await sendInquiry({
+        placeId,
+        userId: user.uid,
+        userName: user.displayName ?? 'Anonymous',
+        userEmail: user.email ?? '',
+        subject: inquirySubject.trim(),
+        message: inquiryMessage.trim(),
+      });
+      toast.success('Message sent to the business!');
+      setInquirySubject('');
+      setInquiryMessage('');
+      setInquiryOpen(false);
+    } catch { toast.error('Failed to send'); }
+    finally { setInquirySending(false); }
+  };
+
+  const handleRsvp = async (eventId: string) => {
+    if (!user) { toast.error('Sign in to RSVP'); return; }
+    try {
+      await rsvpToEvent(eventId, user.uid);
+      const updated = await getEventsForBusiness(placeId);
+      setEvents(updated.filter((e) => new Date(e.date + 'T23:59:59') >= new Date()));
+      toast.success('RSVP confirmed!');
+    } catch { toast.error('Failed to RSVP'); }
+  };
 
   // ── Handlers ─────────────────────────────────────────────────────────────
 
@@ -558,8 +655,14 @@ export default function BusinessDetailsPage() {
             {/* ── Page header: name + rating + chips + actions ──────────── */}
             <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-8 pb-6 border-b border-border">
               <div className="flex-1 min-w-0">
-                <h1 className="text-4xl font-bold text-foreground leading-tight mb-2">
+                <h1 className="text-4xl font-bold text-foreground leading-tight mb-2 flex items-center gap-3">
                   {business.name}
+                  {claimData?.verified && (
+                    <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-500 bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 rounded-full shrink-0">
+                      <ShieldCheck className="h-3 w-3" />
+                      Verified
+                    </span>
+                  )}
                 </h1>
 
                 {/* Clickable rating row */}
@@ -604,6 +707,12 @@ export default function BusinessDetailsPage() {
                     </span>
                   )}
                 </div>
+
+                {/* Travel time from Routes API */}
+                <TravelInfo
+                  destLat={business.geometry.location.lat}
+                  destLng={business.geometry.location.lng}
+                />
               </div>
 
               {/* Action buttons */}
@@ -652,6 +761,200 @@ export default function BusinessDetailsPage() {
                         {business.summary?.overview ?? aiSummary}
                       </p>
                     )}
+                  </section>
+                )}
+
+                {/* Owner Bio */}
+                {claimData?.bio && (
+                  <section>
+                    <h2 className="text-xl font-bold text-foreground mb-3 flex items-center gap-2">
+                      <ShieldCheck className="h-4 w-4 text-emerald-500" />
+                      From the Owner
+                    </h2>
+                    <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">{claimData.bio}</p>
+                  </section>
+                )}
+
+                {/* Team Members */}
+                {claimData?.teamMembers && claimData.teamMembers.length > 0 && (
+                  <section>
+                    <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
+                      <Users className="h-4 w-4 text-muted-foreground" />
+                      Meet the Team
+                    </h2>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                      {claimData.teamMembers.map((member) => (
+                        <div key={member.id} className="flex items-center gap-3 p-3 rounded-xl border border-border bg-card">
+                          <div className="h-12 w-12 rounded-full bg-muted overflow-hidden shrink-0">
+                            {member.photoUrl ? (
+                              <img src={member.photoUrl} alt={member.name} className="w-full h-full object-cover" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center">
+                                <Users className="h-5 w-5 text-muted-foreground/40" />
+                              </div>
+                            )}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-sm font-semibold text-foreground truncate">{member.name}</p>
+                            <p className="text-xs text-muted-foreground truncate">{member.role}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                )}
+
+                {/* Announcements */}
+                {announcements.length > 0 && (
+                  <section>
+                    <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
+                      <Megaphone className="h-4 w-4 text-muted-foreground" />
+                      Latest Updates
+                    </h2>
+                    <div className="space-y-3">
+                      {announcements.slice(0, 3).map((ann) => (
+                        <div key={ann.id} className="p-4 rounded-xl border border-border bg-card">
+                          <div className="flex items-center gap-2 mb-1.5">
+                            <h4 className="text-sm font-bold text-foreground">{ann.title}</h4>
+                            {ann.pinned && (
+                              <span className="text-[10px] font-semibold text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded">Pinned</span>
+                            )}
+                          </div>
+                          <p className="text-sm text-muted-foreground whitespace-pre-wrap">{ann.content}</p>
+                          {ann.createdAt && (
+                            <p className="text-xs text-muted-foreground mt-2">
+                              {new Date((ann.createdAt as any).seconds * 1000).toLocaleDateString('en-US', {
+                                month: 'short', day: 'numeric',
+                              })}
+                            </p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                )}
+
+                {/* Owner Deals */}
+                {ownerDeals.length > 0 && (
+                  <section>
+                    <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
+                      <Tag className="h-4 w-4 text-muted-foreground" />
+                      Exclusive Deals
+                    </h2>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {ownerDeals.map((deal) => {
+                        const pct = Math.round((1 - deal.salePrice / deal.originalPrice) * 100);
+                        return (
+                          <div key={deal.id} className="p-4 rounded-xl border border-border bg-card flex gap-3">
+                            <div className="h-16 w-16 rounded-lg bg-muted overflow-hidden shrink-0">
+                              <img src={deal.imageUrl} alt="" className="w-full h-full object-cover" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-bold text-foreground truncate">{deal.title}</p>
+                              {deal.description && (
+                                <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">{deal.description}</p>
+                              )}
+                              <div className="flex items-center gap-2 mt-1.5">
+                                <span className="text-xs line-through text-muted-foreground">${deal.originalPrice}</span>
+                                <span className="text-sm font-bold text-foreground">${deal.salePrice}</span>
+                                <span className="text-xs font-semibold text-emerald-500 bg-emerald-500/10 px-1.5 py-0.5 rounded">
+                                  -{pct}%
+                                </span>
+                              </div>
+                              {deal.promoCode && (
+                                <p className="text-xs text-purple-400 font-semibold mt-1">
+                                  Code: <span className="uppercase">{deal.promoCode}</span>
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </section>
+                )}
+
+                {/* Events */}
+                {events.length > 0 && (
+                  <section>
+                    <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
+                      <CalendarDays className="h-4 w-4 text-muted-foreground" />
+                      Upcoming Events
+                    </h2>
+                    <div className="space-y-3">
+                      {events.slice(0, 4).map((evt) => {
+                        const eventDate = new Date(evt.date + 'T00:00:00');
+                        const hasRsvpd = user ? evt.rsvpUserIds?.includes(user.uid) : false;
+                        return (
+                          <div key={evt.id} className="p-4 rounded-xl border border-border bg-card flex gap-4">
+                            <div className="text-center shrink-0 w-12">
+                              <p className="text-[10px] font-bold text-muted-foreground uppercase">
+                                {eventDate.toLocaleDateString('en-US', { month: 'short' })}
+                              </p>
+                              <p className="text-2xl font-black text-foreground leading-none">{eventDate.getDate()}</p>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-bold text-foreground">{evt.title}</p>
+                              <p className="text-xs text-muted-foreground mt-0.5">{evt.startTime} – {evt.endTime}</p>
+                              {evt.description && (
+                                <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{evt.description}</p>
+                              )}
+                              <div className="flex items-center gap-3 mt-2">
+                                <span className="text-xs text-muted-foreground">
+                                  {evt.rsvpCount} {evt.rsvpCount === 1 ? 'RSVP' : 'RSVPs'}
+                                </span>
+                                {hasRsvpd ? (
+                                  <span className="text-xs font-semibold text-emerald-500 flex items-center gap-1">
+                                    <CheckCircle2 className="h-3 w-3" /> Going
+                                  </span>
+                                ) : (
+                                  <button
+                                    onClick={() => evt.id && handleRsvp(evt.id)}
+                                    className="text-xs font-semibold text-foreground hover:text-accent transition-colors"
+                                  >
+                                    RSVP
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </section>
+                )}
+
+                {/* Menu */}
+                {claimData?.menuCategories && claimData.menuCategories.length > 0 && (
+                  <section>
+                    <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
+                      <Utensils className="h-4 w-4 text-muted-foreground" />
+                      Menu & Services
+                    </h2>
+                    <div className="space-y-5">
+                      {claimData.menuCategories.map((cat) => (
+                        <div key={cat.id}>
+                          <h3 className="text-sm font-bold text-foreground mb-2 uppercase tracking-wider">{cat.name}</h3>
+                          <div className="space-y-1.5">
+                            {cat.items.map((item) => (
+                              <div key={item.id} className="flex items-start justify-between gap-3 py-2 border-b border-border/50 last:border-0">
+                                <div className="min-w-0">
+                                  <p className="text-sm font-medium text-foreground">{item.name}</p>
+                                  {item.description && (
+                                    <p className="text-xs text-muted-foreground mt-0.5">{item.description}</p>
+                                  )}
+                                </div>
+                                {item.price > 0 && (
+                                  <span className="text-sm font-semibold text-foreground shrink-0">
+                                    ${item.price.toFixed(2)}
+                                  </span>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </section>
                 )}
 
@@ -741,6 +1044,16 @@ export default function BusinessDetailsPage() {
                       </p>
                     </div>
                   )}
+                </section>
+
+                {/* Street View */}
+                <section>
+                  <h2 className="text-xl font-bold text-foreground mb-4">Street View</h2>
+                  <StreetView
+                    lat={business.geometry.location.lat}
+                    lng={business.geometry.location.lng}
+                    className="aspect-[2/1]"
+                  />
                 </section>
 
                 {/* Map — full width at the bottom of main column */}
@@ -852,6 +1165,110 @@ export default function BusinessDetailsPage() {
                       Check in
                     </button>
                   )}
+                </div>
+
+                {/* Owner Hours Override */}
+                {claimData?.hoursOverride && claimData.hoursOverride.length > 0 && (
+                  <div className="rounded-xl border border-emerald-500/20 bg-card p-4">
+                    <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-1 flex items-center gap-1.5">
+                      <ShieldCheck className="h-3 w-3 text-emerald-500" />
+                      Owner Hours
+                    </h3>
+                    <p className="text-[10px] text-emerald-500/70 mb-3">Updated by owner</p>
+                    <ul className="space-y-2">
+                      {claimData.hoursOverride.map((h, i) => {
+                        const dayIdx = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'].indexOf(h.day);
+                        const jsDay = dayIdx === 6 ? 0 : dayIdx + 1;
+                        const isToday = jsDay === todayIdx;
+                        return (
+                          <li key={i} className={`flex justify-between text-sm gap-2 ${
+                            isToday ? 'font-semibold text-foreground' : 'text-muted-foreground'
+                          }`}>
+                            <span className={isToday ? 'text-accent' : ''}>{h.day}</span>
+                            <span className="text-right shrink-0">
+                              {h.closed ? 'Closed' : `${h.open} – ${h.close}`}
+                            </span>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Message / Inquiry Button */}
+                {claimData && (
+                  <div className="rounded-xl border border-border bg-card p-4">
+                    <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3">
+                      Contact Business
+                    </h3>
+                    {!inquiryOpen ? (
+                      <button
+                        onClick={() => setInquiryOpen(true)}
+                        className="w-full flex items-center justify-center gap-2 text-sm font-medium px-3 py-2.5 rounded-lg border border-border hover:bg-muted transition-colors"
+                      >
+                        <Mail className="h-4 w-4" />
+                        Send a Message
+                      </button>
+                    ) : (
+                      <div className="space-y-3">
+                        <Input
+                          value={inquirySubject}
+                          onChange={(e) => setInquirySubject(e.target.value)}
+                          placeholder="Subject"
+                          className="text-sm"
+                        />
+                        <Textarea
+                          value={inquiryMessage}
+                          onChange={(e) => setInquiryMessage(e.target.value)}
+                          rows={3}
+                          placeholder="Your message…"
+                          className="resize-none text-sm"
+                        />
+                        <div className="flex gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="flex-1"
+                            onClick={() => { setInquiryOpen(false); setInquirySubject(''); setInquiryMessage(''); }}
+                          >
+                            Cancel
+                          </Button>
+                          <Button
+                            size="sm"
+                            className="flex-1 gap-1.5"
+                            onClick={handleSendInquiry}
+                            disabled={inquirySending}
+                          >
+                            {inquirySending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
+                            Send
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Neighborhood Insights */}
+                <div className="rounded-xl border border-border bg-card p-4">
+                  <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3">
+                    Neighborhood
+                  </h3>
+                  <AreaInsights
+                    lat={business.geometry.location.lat}
+                    lng={business.geometry.location.lng}
+                    radius={500}
+                  />
+                </div>
+
+                {/* Solar Potential */}
+                <div className="rounded-xl border border-border bg-card p-4">
+                  <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3">
+                    Solar Potential
+                  </h3>
+                  <SolarPanel
+                    lat={business.geometry.location.lat}
+                    lng={business.geometry.location.lng}
+                  />
                 </div>
 
                 {/* Weather & Air Quality */}
