@@ -1,8 +1,8 @@
-
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
+import { SplashScreenProvider } from '@/components/ui/splash-screen-provider'
 
 const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
@@ -38,7 +38,9 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
       <body className="font-sans antialiased bg-background text-foreground">
-        {children}
+        <SplashScreenProvider>
+          {children}
+        </SplashScreenProvider>
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>
