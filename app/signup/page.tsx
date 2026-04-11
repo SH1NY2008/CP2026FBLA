@@ -1,28 +1,48 @@
-import { SignUpForm } from "@/components/signup-form"
-import Link from "next/link"
+'use client'
 
-export default function SignUpPage() {
+import { SignUpPage } from "@/components/ui/sign-up";
+import { auth, googleProvider } from "@/firebase";
+import { createUserWithEmailAndPassword, signInWithPopup } from "firebase/auth";
+import { useRouter } from "next/navigation";
+
+export default function SignupPage() {
+  const router = useRouter();
+
+  const handleSignUp = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
+    try {
+      await createUserWithEmailAndPassword(auth, email, password);
+      router.push("/");
+    } catch (error: any) {
+      console.error("Error signing up:", error);
+      alert(`Sign-Up failed. ${error.message}`);
+    }
+  };
+
+  const handleGoogleSignUp = async () => {
+    try {
+      await signInWithPopup(auth, googleProvider);
+      router.push("/");
+    } catch (error: any) {
+      if (error.code !== 'auth/cancelled-popup-request') {
+        console.error('Error signing up with Google:', error);
+        alert(`Google Sign-Up failed. ${error.message}`);
+      }
+    }
+  };
+
+  const handleSignIn = () => {
+    router.push("/login");
+  };
+
   return (
-    <div className="grid min-h-svh lg:grid-cols-2">
-      <div className="flex flex-col gap-4 p-6 md:p-10">
-        <div className="flex justify-center gap-2 md:justify-start">
-          <Link href="/" className="font-black text-xl text-foreground tracking-tight">
-            BOOST
-          </Link>
-        </div>
-        <div className="flex flex-1 items-center justify-center">
-          <div className="w-full max-w-xs">
-            <SignUpForm />
-          </div>
-        </div>
-      </div>
-      <div className="relative hidden bg-muted lg:block">
-        <img
-          src="/placeholder.svg"
-          alt="Image"
-          className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
-        />
-      </div>
-    </div>
-  )
+    <SignUpPage
+      onSignUp={handleSignUp}
+      onGoogleSignUp={handleGoogleSignUp}
+      onSignIn={handleSignIn}
+    />
+  );
 }

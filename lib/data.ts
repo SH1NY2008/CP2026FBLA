@@ -36,5 +36,5 @@ export function getBusinessById(_id: string): Business | undefined {
 }
 
 export function redeemDeal(_dealId: string): void {
-  // no-op; redemptions are tracked server-side for scraped deals
+  // no-op
 }

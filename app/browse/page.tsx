@@ -174,99 +174,6 @@ export default function BrowsePage() {
     return result;
   }, [businesses, searchQuery, openNow, sortBy]);
 
-  const FiltersPanel = () => (
-    <BusinessFilters
-      onCategoryChange={setSelectedCategory}
-      onRadiusChange={setRadius}
-      onPriceChange={setSelectedPrices}
-    />
-  );
-
-  const Toolbar = () => (
-    <div className="flex items-center gap-2 flex-wrap mb-5">
-      {/* Mobile filter trigger */}
-      <Sheet open={mobileFiltersOpen} onOpenChange={setMobileFiltersOpen}>
-        <SheetTrigger asChild>
-          <button className="lg:hidden flex items-center gap-2 text-sm font-medium px-3 py-2 h-9 rounded-md border border-border hover:border-accent/50 hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
-            <SlidersHorizontal className="h-4 w-4" />
-            Filters
-          </button>
-        </SheetTrigger>
-        <SheetContent side="left" className="w-72 p-0 pt-6">
-          <SheetHeader className="px-5 pb-4 border-b border-border">
-            <SheetTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
-              Filters
-            </SheetTitle>
-          </SheetHeader>
-          <div className="px-5 pt-5 overflow-y-auto">
-            <FiltersPanel />
-          </div>
-        </SheetContent>
-      </Sheet>
-
-      {/* Search */}
-      <div className="relative flex-1 min-w-[180px]">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
-        <Input
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search results…"
-          className="pl-8 h-9 text-sm"
-        />
-      </div>
-
-      {/* Sort */}
-      <select
-        value={sortBy}
-        onChange={(e) => setSortBy(e.target.value as SortOption)}
-        className="h-9 text-sm px-3 rounded-md border border-border bg-background text-foreground cursor-pointer hover:border-accent/50 transition-colors"
-      >
-        <option value="distance">Nearest first</option>
-        <option value="rating">Top rated</option>
-        <option value="price">Price: low → high</option>
-      </select>
-
-      {/* Open now */}
-      <button
-        onClick={() => setOpenNow(!openNow)}
-        className={`flex items-center gap-1.5 h-9 px-3 rounded-md text-sm font-medium border transition-all duration-200 ${
-          openNow
-            ? 'bg-green-500/10 border-green-500/40 text-green-600 dark:text-green-400'
-            : 'border-border text-muted-foreground hover:text-foreground hover:border-accent/50'
-        }`}
-      >
-        <Clock className="h-3.5 w-3.5" />
-        Open now
-        {openNow && <span className="h-1.5 w-1.5 rounded-full bg-green-500 ml-0.5" />}
-      </button>
-
-      {/* View toggle */}
-      <div className="hidden sm:flex rounded-md border border-border overflow-hidden shrink-0">
-        <button
-          onClick={() => setViewMode('list')}
-          title="List view"
-          className={`px-2.5 py-2 text-sm transition-colors ${
-            viewMode === 'list'
-              ? 'bg-accent text-accent-foreground'
-              : 'text-muted-foreground hover:bg-muted'
-          }`}
-        >
-          <LayoutList className="h-4 w-4" />
-        </button>
-        <button
-          onClick={() => setViewMode('split')}
-          title="Map view"
-          className={`px-2.5 py-2 text-sm border-l border-border transition-colors ${
-            viewMode === 'split'
-              ? 'bg-accent text-accent-foreground'
-              : 'text-muted-foreground hover:bg-muted'
-          }`}
-        >
-          <Map className="h-4 w-4" />
-        </button>
-      </div>
-    </div>
-  );
 
   const ResultsContent = ({ compact = false }: { compact?: boolean }) => (
     <>
@@ -381,13 +288,104 @@ export default function BrowsePage() {
                     Filters
                   </h2>
                 </div>
-                <FiltersPanel />
+                <BusinessFilters
+                  onCategoryChange={setSelectedCategory}
+                  onRadiusChange={setRadius}
+                  onPriceChange={setSelectedPrices}
+                />
               </div>
             </aside>
 
             {/* Results column */}
             <div className="flex-1 min-w-0">
-              <Toolbar />
+              {/* Toolbar */}
+              <div className="flex items-center gap-2 flex-wrap mb-5">
+                {/* Mobile filter trigger */}
+                <Sheet open={mobileFiltersOpen} onOpenChange={setMobileFiltersOpen}>
+                  <SheetTrigger asChild>
+                    <button className="lg:hidden flex items-center gap-2 text-sm font-medium px-3 py-2 h-9 rounded-md border border-border hover:border-accent/50 hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
+                      <SlidersHorizontal className="h-4 w-4" />
+                      Filters
+                    </button>
+                  </SheetTrigger>
+                  <SheetContent side="left" className="w-72 p-0 pt-6">
+                    <SheetHeader className="px-5 pb-4 border-b border-border">
+                      <SheetTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
+                        Filters
+                      </SheetTitle>
+                    </SheetHeader>
+                    <div className="px-5 pt-5 overflow-y-auto">
+                      <BusinessFilters
+                        onCategoryChange={setSelectedCategory}
+                        onRadiusChange={setRadius}
+                        onPriceChange={setSelectedPrices}
+                      />
+                    </div>
+                  </SheetContent>
+                </Sheet>
+
+                {/* Search */}
+                <div className="relative flex-1 min-w-[180px]">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+                  <Input
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search results…"
+                    className="pl-8 h-9 text-sm"
+                  />
+                </div>
+
+                {/* Sort */}
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as SortOption)}
+                  className="h-9 text-sm px-3 rounded-md border border-border bg-background text-foreground cursor-pointer hover:border-accent/50 transition-colors"
+                >
+                  <option value="distance">Nearest first</option>
+                  <option value="rating">Top rated</option>
+                  <option value="price">Price: low → high</option>
+                </select>
+
+                {/* Open now */}
+                <button
+                  onClick={() => setOpenNow(!openNow)}
+                  className={`flex items-center gap-1.5 h-9 px-3 rounded-md text-sm font-medium border transition-all duration-200 ${
+                    openNow
+                      ? 'bg-green-500/10 border-green-500/40 text-green-600 dark:text-green-400'
+                      : 'border-border text-muted-foreground hover:text-foreground hover:border-accent/50'
+                  }`}
+                >
+                  <Clock className="h-3.5 w-3.5" />
+                  Open now
+                  {openNow && <span className="h-1.5 w-1.5 rounded-full bg-green-500 ml-0.5" />}
+                </button>
+
+                {/* View toggle */}
+                <div className="hidden sm:flex rounded-md border border-border overflow-hidden shrink-0">
+                  <button
+                    onClick={() => setViewMode('list')}
+                    title="List view"
+                    className={`px-2.5 py-2 text-sm transition-colors ${
+                      viewMode === 'list'
+                        ? 'bg-accent text-accent-foreground'
+                        : 'text-muted-foreground hover:bg-muted'
+                    }`}
+                  >
+                    <LayoutList className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={() => setViewMode('split')}
+                    title="Map view"
+                    className={`px-2.5 py-2 text-sm border-l border-border transition-colors ${
+                      viewMode === 'split'
+                        ? 'bg-accent text-accent-foreground'
+                        : 'text-muted-foreground hover:bg-muted'
+                    }`}
+                  >
+                    <Map className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
 
               {viewMode === 'list' && <ResultsContent />}
 
