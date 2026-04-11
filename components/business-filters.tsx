@@ -2,8 +2,9 @@
 
 import { useState } from 'react';
 import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
+import { Badge } from '@/components/ui/badge';
+import { X } from 'lucide-react';
 
 interface BusinessFiltersProps {
   onCategoryChange: (category: string) => void;
@@ -12,10 +13,10 @@ interface BusinessFiltersProps {
 }
 
 const CATEGORIES = [
-  { id: 'restaurant', label: 'Restaurants' },
-  { id: 'shopping', label: 'Retail' },
-  { id: 'services', label: 'Services' },
-  { id: 'entertainment', label: 'Entertainment' },
+  { id: 'restaurant', label: 'Restaurants', icon: '🍽️' },
+  { id: 'shopping', label: 'Retail', icon: '🛍️' },
+  { id: 'services', label: 'Services', icon: '🔧' },
+  { id: 'entertainment', label: 'Entertainment', icon: '🎭' },
 ];
 
 const PRICE_LEVELS = [
@@ -25,14 +26,17 @@ const PRICE_LEVELS = [
   { value: 4, label: '$$$$' },
 ];
 
+const DEFAULT_RADIUS = 5;
+const DEFAULT_PRICES = [1, 2, 3, 4];
+
 export function BusinessFilters({
   onCategoryChange,
   onRadiusChange,
   onPriceChange,
 }: BusinessFiltersProps) {
   const [selectedCategory, setSelectedCategory] = useState('restaurant');
-  const [radius, setRadius] = useState(5); // km
-  const [selectedPrices, setSelectedPrices] = useState<number[]>([1, 2, 3, 4]);
+  const [radius, setRadius] = useState(DEFAULT_RADIUS);
+  const [selectedPrices, setSelectedPrices] = useState<number[]>(DEFAULT_PRICES);
 
   const handleCategoryChange = (categoryId: string) => {
     setSelectedCategory(categoryId);
@@ -46,42 +50,117 @@ export function BusinessFilters({
   };
 
   const handlePriceToggle = (priceValue: number) => {
-    let newPrices: number[];
-    if (selectedPrices.includes(priceValue)) {
-      newPrices = selectedPrices.filter((p) => p !== priceValue);
-    } else {
-      newPrices = [...selectedPrices, priceValue].sort();
-    }
+    const newPrices = selectedPrices.includes(priceValue)
+      ? selectedPrices.filter((p) => p !== priceValue)
+      : [...selectedPrices, priceValue].sort();
+    if (newPrices.length === 0) return;
     setSelectedPrices(newPrices);
     onPriceChange(newPrices);
   };
 
+  const clearAll = () => {
+    setRadius(DEFAULT_RADIUS);
+    setSelectedPrices(DEFAULT_PRICES);
+    onRadiusChange(DEFAULT_RADIUS);
+    onPriceChange(DEFAULT_PRICES);
+  };
+
+  const hasActiveFilters =
+    radius !== DEFAULT_RADIUS || selectedPrices.length < DEFAULT_PRICES.length;
+
+  type Chip = { id: string; label: string; onRemove: () => void };
+  const activeChips: Chip[] = [
+    ...(radius !== DEFAULT_RADIUS
+      ? [{
+          id: 'radius',
+          label: `Within ${radius} km`,
+          onRemove: () => { setRadius(DEFAULT_RADIUS); onRadiusChange(DEFAULT_RADIUS); },
+        }]
+      : []),
+    ...DEFAULT_PRICES
+      .filter((p) => !selectedPrices.includes(p))
+      .map((p) => ({
+        id: `excl-${p}`,
+        label: `Excl. ${'$'.repeat(p)}`,
+        onRemove: () => {
+          const next = [...selectedPrices, p].sort();
+          setSelectedPrices(next);
+          onPriceChange(next);
+        },
+      })),
+  ];
+
   return (
-    <Card className="p-6 bg-card border border-border sticky top-32">
-      <div className="space-y-6">
-        {/* Category Filter */}
-        <div>
-          <h3 className="text-sm font-semibold mb-3 text-foreground">Category</h3>
-          <div className="flex flex-wrap gap-2">
-            {CATEGORIES.map((category) => (
-              <Button
-                key={category.id}
-                variant={selectedCategory === category.id ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => handleCategoryChange(category.id)}
-                className={selectedCategory === category.id ? 'bg-accent text-accent-foreground' : 'bg-secondary text-foreground border-border hover:bg-muted'}
+    <Card className="p-5 bg-card border border-border sticky top-32">
+      <div className="space-y-5">
+        {/* Active filter chips */}
+        {hasActiveFilters && (
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                Active filters
+              </span>
+              <button
+                onClick={clearAll}
+                className="text-xs text-accent hover:text-accent/80 font-medium transition-colors"
               >
-                {category.label}
-              </Button>
+                Clear all
+              </button>
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {activeChips.map((chip) => (
+                <Badge
+                  key={chip.id}
+                  variant="secondary"
+                  className="gap-1 pl-2.5 pr-1.5 py-1 text-xs bg-accent/10 text-accent border border-accent/20"
+                >
+                  {chip.label}
+                  <button
+                    onClick={chip.onRemove}
+                    className="ml-0.5 rounded-full hover:bg-accent/20 p-0.5 transition-colors"
+                    aria-label="Remove filter"
+                  >
+                    <X className="h-2.5 w-2.5" />
+                  </button>
+                </Badge>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Category */}
+        <div>
+          <h3 className="text-xs font-semibold mb-2.5 text-muted-foreground uppercase tracking-wide">
+            Category
+          </h3>
+          <div className="flex flex-col gap-1.5">
+            {CATEGORIES.map((cat) => (
+              <button
+                key={cat.id}
+                onClick={() => handleCategoryChange(cat.id)}
+                className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium text-left transition-all duration-200 ${
+                  selectedCategory === cat.id
+                    ? 'bg-accent text-accent-foreground shadow-sm'
+                    : 'text-foreground hover:bg-muted'
+                }`}
+              >
+                <span className="text-base leading-none">{cat.icon}</span>
+                {cat.label}
+              </button>
             ))}
           </div>
         </div>
 
-        {/* Radius Filter */}
+        {/* Radius */}
         <div>
-          <h3 className="text-sm font-semibold mb-3 text-foreground">
-            Search Radius: <span className="text-accent">{radius} km</span>
-          </h3>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+              Distance
+            </h3>
+            <span className="text-xs font-semibold text-accent bg-accent/10 px-2 py-0.5 rounded-full">
+              Within {radius} km
+            </span>
+          </div>
           <Slider
             value={[radius]}
             onValueChange={handleRadiusChange}
@@ -90,24 +169,30 @@ export function BusinessFilters({
             step={1}
             className="w-full"
           />
+          <div className="flex justify-between mt-1.5">
+            <span className="text-xs text-muted-foreground">1 km</span>
+            <span className="text-xs text-muted-foreground">50 km</span>
+          </div>
         </div>
 
-        {/* Price Filter */}
+        {/* Price */}
         <div>
-          <h3 className="text-sm font-semibold mb-3 text-foreground">Price Range</h3>
-          <div className="flex gap-2">
+          <h3 className="text-xs font-semibold mb-2.5 text-muted-foreground uppercase tracking-wide">
+            Price
+          </h3>
+          <div className="grid grid-cols-4 gap-1.5">
             {PRICE_LEVELS.map((price) => (
-              <Button
+              <button
                 key={price.value}
-                variant={
-                  selectedPrices.includes(price.value) ? 'default' : 'outline'
-                }
-                size="sm"
                 onClick={() => handlePriceToggle(price.value)}
-                className={selectedPrices.includes(price.value) ? 'bg-accent text-accent-foreground' : 'bg-secondary text-foreground border-border hover:bg-muted'}
+                className={`py-2 rounded-lg text-sm font-medium text-center transition-all duration-200 ${
+                  selectedPrices.includes(price.value)
+                    ? 'bg-accent text-accent-foreground shadow-sm'
+                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                }`}
               >
                 {price.label}
-              </Button>
+              </button>
             ))}
           </div>
         </div>

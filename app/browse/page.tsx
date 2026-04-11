@@ -1,18 +1,28 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Container } from '@/components/ui/container';
 import { Header } from '@/components/header';
 import { LocationTag } from '@/components/ui/location-tag';
-
 import { LocationDetector } from '@/components/location-detector';
 import { BusinessFilters } from '@/components/business-filters';
 import { BusinessCard } from '@/components/business-card';
 import { BusinessCardSkeleton } from '@/components/business-card-skeleton';
-import { Loader2, AlertCircle } from 'lucide-react';
+import { BusinessMap } from '@/components/business-map';
+import { Input } from '@/components/ui/input';
+import {
+  AlertCircle,
+  Clock,
+  LayoutList,
+  Map,
+  Search,
+  SlidersHorizontal,
+  Store,
+} from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { getDocs, collection } from 'firebase/firestore';
 import { db } from '@/firebase';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 
 interface Business {
   placeId: string;
@@ -37,31 +47,42 @@ interface Location {
   country: string;
 }
 
-const TYPE_MAP: { [key: string]: string } = {
+const TYPE_MAP: Record<string, string> = {
   restaurant: 'restaurant',
   shopping: 'shopping_mall|store|supermarket',
   services: 'bank|gym|pharmacy|hospital|spa',
   entertainment: 'movie_theater|park|amusement_park',
 };
 
+type SortOption = 'distance' | 'rating' | 'price';
+type ViewMode = 'list' | 'split';
+
 export default function BrowsePage() {
   const [location, setLocation] = useState<Location | null>(null);
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Filter state — synced from BusinessFilters via callbacks
   const [selectedCategory, setSelectedCategory] = useState('restaurant');
   const [radius, setRadius] = useState(5);
   const [selectedPrices, setSelectedPrices] = useState<number[]>([1, 2, 3, 4]);
+
+  // Toolbar state — client-side
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState<SortOption>('distance');
+  const [openNow, setOpenNow] = useState(false);
+  const [viewMode, setViewMode] = useState<ViewMode>('list');
 
   useEffect(() => {
     if (location) {
       fetchBusinesses();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location, selectedCategory, radius, selectedPrices]);
 
   const fetchBusinesses = async () => {
     if (!location) return;
-
     setLoading(true);
     setError(null);
 
@@ -73,47 +94,36 @@ export default function BrowsePage() {
         `/api/places/nearby?lat=${location.lat}&lng=${location.lng}&radius=${radiusInMeters}&type=${placeType}`
       );
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch businesses');
-      }
+      if (!response.ok) throw new Error('Failed to fetch businesses');
 
       const data = await response.json();
-
-      if (data.status !== 'OK') {
-        throw new Error(data.error_message || 'No results found');
-      }
+      if (data.status !== 'OK') throw new Error(data.error_message || 'No results found');
 
       const ratingsSnapshot = await getDocs(collection(db, 'businessRatings'));
-      const firestoreRatings: { [key: string]: { rating: number; ratingCount: number } } = {};
+      const firestoreRatings: Record<string, { rating: number; ratingCount: number }> = {};
       ratingsSnapshot.forEach((doc) => {
         firestoreRatings[doc.id] = doc.data() as { rating: number; ratingCount: number };
       });
 
-      const processedBusinesses = (data.results || [])
-        .map((business: Business) => {
-          const firestoreRating = firestoreRatings[business.placeId];
+      const processed = (data.results || [])
+        .map((b: Business) => {
+          const fr = firestoreRatings[b.placeId];
           return {
-            ...business,
-            rating: firestoreRating ? firestoreRating.rating : business.rating,
-            ratingCount: firestoreRating ? firestoreRating.ratingCount : business.ratingCount,
-            distance: calculateDistance(
-              location.lat,
-              location.lng,
-              business.lat,
-              business.lng
-            ),
+            ...b,
+            rating: fr ? fr.rating : b.rating,
+            ratingCount: fr ? fr.ratingCount : b.ratingCount,
+            distance: calculateDistance(location.lat, location.lng, b.lat, b.lng),
           };
         })
-        .filter((business: Business) => {
-          if (!business.priceLevel) return true;
-          return selectedPrices.includes(business.priceLevel);
+        .filter((b: Business) => {
+          if (!b.priceLevel) return true;
+          return selectedPrices.includes(b.priceLevel);
         })
         .sort((a: Business, b: Business) => (a.distance || 0) - (b.distance || 0));
 
-      setBusinesses(processedBusinesses);
+      setBusinesses(processed);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch businesses';
-      setError(errorMessage);
+      setError(err instanceof Error ? err.message : 'Failed to fetch businesses');
       setBusinesses([]);
     } finally {
       setLoading(false);
@@ -121,50 +131,214 @@ export default function BrowsePage() {
   };
 
   const calculateDistance = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
-    const R = 6371; // Earth's radius in km
+    const R = 6371;
     const dLat = ((lat2 - lat1) * Math.PI) / 180;
     const dLng = ((lng2 - lng1) * Math.PI) / 180;
     const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.sin(dLat / 2) ** 2 +
       Math.cos((lat1 * Math.PI) / 180) *
         Math.cos((lat2 * Math.PI) / 180) *
-        Math.sin(dLng / 2) *
-        Math.sin(dLng / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c;
+        Math.sin(dLng / 2) ** 2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   };
 
-  return (
-    <main className="min-h-screen bg-background">
-      <Header />
-      
-      <Container className="max-w-7xl pt-28 pb-16">
-        <div className="mb-12">
-          <h1 className="text-5xl font-bold text-balance mb-3 text-foreground">Browse Local Businesses</h1>
-          <p className="text-lg text-muted-foreground">Find restaurants, shops, services, and entertainment venues near you</p>
+  const displayedBusinesses = useMemo(() => {
+    let result = [...businesses];
+
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter(
+        (b) =>
+          b.name.toLowerCase().includes(q) || b.address.toLowerCase().includes(q)
+      );
+    }
+
+    if (openNow) {
+      result = result.filter((b) => b.isOpen === true);
+    }
+
+    switch (sortBy) {
+      case 'rating':
+        result.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+        break;
+      case 'price':
+        result.sort((a, b) => (a.priceLevel || 0) - (b.priceLevel || 0));
+        break;
+      default:
+        result.sort((a, b) => (a.distance || 0) - (b.distance || 0));
+    }
+
+    return result;
+  }, [businesses, searchQuery, openNow, sortBy]);
+
+  const ResultsToolbar = () => (
+    <div className="sticky top-20 z-10 bg-background/95 backdrop-blur-sm border-b border-border -mx-px px-px pb-3 mb-5">
+      <div className="flex items-center gap-2 flex-wrap pt-1">
+        {/* Search */}
+        <div className="relative flex-1 min-w-[180px]">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+          <Input
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search results…"
+            className="pl-8 h-9 text-sm"
+          />
         </div>
 
+        {/* Sort */}
+        <select
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value as SortOption)}
+          className="h-9 text-sm px-3 rounded-md border border-border bg-background text-foreground cursor-pointer hover:border-accent/50 transition-colors"
+        >
+          <option value="distance">Nearest first</option>
+          <option value="rating">Top rated</option>
+          <option value="price">Price: low → high</option>
+        </select>
+
+        {/* Open now */}
+        <button
+          onClick={() => setOpenNow(!openNow)}
+          className={`flex items-center gap-1.5 h-9 px-3 rounded-md text-sm font-medium border transition-all duration-200 ${
+            openNow
+              ? 'bg-green-500/10 border-green-500/40 text-green-600 dark:text-green-400'
+              : 'border-border text-muted-foreground hover:text-foreground hover:border-accent/50'
+          }`}
+        >
+          <Clock className="h-3.5 w-3.5" />
+          Open now
+          {openNow && <span className="h-1.5 w-1.5 rounded-full bg-green-500 ml-0.5" />}
+        </button>
+
+        {/* View toggle */}
+        <div className="hidden sm:flex rounded-md border border-border overflow-hidden shrink-0">
+          <button
+            onClick={() => setViewMode('list')}
+            title="List view"
+            className={`px-2.5 py-2 text-sm transition-colors ${
+              viewMode === 'list'
+                ? 'bg-accent text-accent-foreground'
+                : 'text-muted-foreground hover:bg-muted'
+            }`}
+          >
+            <LayoutList className="h-4 w-4" />
+          </button>
+          <button
+            onClick={() => setViewMode('split')}
+            title="Map view"
+            className={`px-2.5 py-2 text-sm border-l border-border transition-colors ${
+              viewMode === 'split'
+                ? 'bg-accent text-accent-foreground'
+                : 'text-muted-foreground hover:bg-muted'
+            }`}
+          >
+            <Map className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
+
+      {!loading && businesses.length > 0 && (
+        <p className="text-xs text-muted-foreground mt-2">
+          Showing{' '}
+          <span className="font-semibold text-foreground">{displayedBusinesses.length}</span>
+          {displayedBusinesses.length !== businesses.length && (
+            <> of {businesses.length}</>
+          )}{' '}
+          results
+        </p>
+      )}
+    </div>
+  );
+
+  const ResultsContent = ({ compact = false }: { compact?: boolean }) => (
+    <>
+      {loading && (
+        <div className={`grid gap-4 ${compact ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2'}`}>
+          {Array.from({ length: 6 }).map((_, i) => (
+            <BusinessCardSkeleton key={i} />
+          ))}
+        </div>
+      )}
+
+      {error && (
+        <Alert variant="destructive" className="bg-destructive/10 border-destructive/30">
+          <AlertCircle className="h-4 w-4 text-destructive" />
+          <AlertDescription className="text-destructive">{error}</AlertDescription>
+        </Alert>
+      )}
+
+      {!loading && !error && displayedBusinesses.length === 0 && businesses.length === 0 && (
+        <div className="flex flex-col items-center justify-center py-20 text-center gap-4">
+          <div className="p-4 rounded-full bg-muted">
+            <Store className="h-8 w-8 text-muted-foreground" />
+          </div>
+          <div>
+            <p className="font-semibold text-foreground mb-1">No businesses found</p>
+            <p className="text-sm text-muted-foreground">
+              Try adjusting the search radius or picking a different category.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {!loading && !error && displayedBusinesses.length === 0 && businesses.length > 0 && (
+        <div className="flex flex-col items-center justify-center py-20 text-center gap-3">
+          <p className="font-semibold text-foreground">No matches for your search</p>
+          <p className="text-sm text-muted-foreground">Clear the search or toggle off "Open now".</p>
+        </div>
+      )}
+
+      {!loading && displayedBusinesses.length > 0 && (
+        <div className={`grid gap-4 ${compact ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2'}`}>
+          {displayedBusinesses.map((business) => (
+            <BusinessCard key={business.placeId} {...business} />
+          ))}
+        </div>
+      )}
+    </>
+  );
+
+  return (
+    <main className="min-h-screen bg-background browse-theme">
+      <Header />
+
+      <Container className="max-w-7xl pt-24 pb-16">
+        {/* Compact utility hero */}
+        <div className="pt-4 mb-8">
+          <h1 className="text-3xl font-bold text-foreground mb-1">
+            Find great spots near you
+          </h1>
+          <p className="text-muted-foreground text-sm">
+            Discover restaurants, shops, services, and entertainment
+          </p>
+        </div>
+
+        {/* Location setup */}
         {!location && (
-          <div className="mb-8 max-w-2xl">
-            <LocationDetector
-              onLocationFound={(location) => {
-                setLocation(location);
-              }}
-            />
+          <div className="mb-10 max-w-xl">
+            <p className="text-sm font-medium text-muted-foreground mb-4">
+              Where are you looking?
+            </p>
+            <LocationDetector onLocationFound={setLocation} />
           </div>
         )}
 
         {location && (
-          <div className="mb-8">
-            <LocationTag 
-              city={location.city} 
-              country={location.country} 
-              timezone={Intl.DateTimeFormat().resolvedOptions().timeZone.split('/').pop()?.replace('_', ' ')}
+          <div className="mb-6">
+            <LocationTag
+              city={location.city}
+              country={location.country}
+              timezone={Intl.DateTimeFormat()
+                .resolvedOptions()
+                .timeZone.split('/')
+                .pop()
+                ?.replace('_', ' ')}
             />
           </div>
         )}
 
-        {location && (
+        {/* Main content area */}
+        {location && viewMode === 'list' && (
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
             <div className="lg:col-span-1">
               <BusinessFilters
@@ -173,51 +347,54 @@ export default function BrowsePage() {
                 onPriceChange={setSelectedPrices}
               />
             </div>
-
             <div className="lg:col-span-3">
-              {loading && (
-                <>
-                  <p className="text-sm font-medium text-muted-foreground mb-4">Loading businesses...</p>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {Array.from({ length: 6 }).map((_, i) => (
-                      <BusinessCardSkeleton key={i} />
-                    ))}
-                  </div>
-                </>
-              )}
+              <ResultsToolbar />
+              <ResultsContent />
+            </div>
+          </div>
+        )}
 
-              {error && (
-                <Alert variant="destructive" className="bg-red-950 border-red-900">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription className="text-red-200">{error}</AlertDescription>
-                </Alert>
-              )}
+        {location && viewMode === 'split' && (
+          <div className="flex flex-col lg:flex-row gap-5 lg:items-start">
+            {/* Left: results with filter sheet trigger */}
+            <div className="flex-1 min-w-0">
+              {/* Filter sheet trigger for split mode */}
+              <div className="mb-3 lg:hidden-not-needed">
+                <Sheet>
+                  <SheetTrigger asChild>
+                    <button className="flex items-center gap-2 text-sm font-medium px-3 py-2 rounded-lg border border-border hover:border-accent/50 hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
+                      <SlidersHorizontal className="h-4 w-4" />
+                      Filters
+                    </button>
+                  </SheetTrigger>
+                  <SheetContent side="left" className="w-80 p-0 pt-6">
+                    <div className="px-5">
+                      <BusinessFilters
+                        onCategoryChange={setSelectedCategory}
+                        onRadiusChange={setRadius}
+                        onPriceChange={setSelectedPrices}
+                      />
+                    </div>
+                  </SheetContent>
+                </Sheet>
+              </div>
 
-              {!loading && businesses.length === 0 && !error && (
-                <div className="flex flex-col items-center justify-center py-16 text-center">
-                  <p className="text-foreground text-lg font-medium mb-2">No businesses found</p>
-                  <p className="text-muted-foreground">Try adjusting your search radius or filters to find more results.</p>
-                </div>
-              )}
+              <ResultsToolbar />
+              <ResultsContent compact />
+            </div>
 
-              {!loading && businesses.length > 0 && (
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground mb-6">
-                    Found <span className="text-accent font-semibold">{businesses.length}</span> results
-                  </p>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {businesses.map((business) => (
-                      <BusinessCard key={business.placeId} {...business} />
-                    ))}
-                  </div>
-                </div>
-              )}
+            {/* Right: sticky map */}
+            <div className="hidden sm:block lg:w-[44%] lg:sticky lg:top-24">
+              <BusinessMap
+                lat={location.lat}
+                lng={location.lng}
+                category={selectedCategory}
+                className="h-[calc(100vh-7rem)] min-h-[500px]"
+              />
             </div>
           </div>
         )}
       </Container>
-
-      
     </main>
   );
 }
