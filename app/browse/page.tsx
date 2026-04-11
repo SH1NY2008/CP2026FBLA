@@ -89,7 +89,7 @@ export default function BrowsePage() {
 
     try {
       const placeType = TYPE_MAP[selectedCategory] || 'restaurant';
-      const radiusInMeters = radius * 1000;
+      const radiusInMeters = radius * 1609.34; // miles to meters
 
       const response = await fetch(
         `/api/places/nearby?lat=${location.lat}&lng=${location.lng}&radius=${radiusInMeters}&type=${placeType}`
@@ -132,7 +132,7 @@ export default function BrowsePage() {
   };
 
   const calculateDistance = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
-    const R = 6371;
+    const R = 3958.8; // Earth's radius in miles
     const dLat = ((lat2 - lat1) * Math.PI) / 180;
     const dLng = ((lng2 - lng1) * Math.PI) / 180;
     const a =

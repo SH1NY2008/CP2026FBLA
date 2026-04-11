@@ -157,9 +157,9 @@ export function BusinessCard({
 
           {distance !== undefined && (
             <span className="text-xs text-muted-foreground">
-              {distance < 1
-                ? `${(distance * 1000).toFixed(0)} m`
-                : `${distance.toFixed(1)} km`}
+              {distance < 0.1
+                ? `${(distance * 5280).toFixed(0)} ft`
+                : `${distance.toFixed(1)} mi`}
             </span>
           )}
 

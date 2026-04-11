@@ -25,7 +25,7 @@ const PRICE_LEVELS = [
   { value: 4, label: '$$$$' },
 ];
 
-const DEFAULT_RADIUS = 5;
+const DEFAULT_RADIUS = 5; // miles
 const DEFAULT_PRICES = [1, 2, 3, 4];
 
 export function BusinessFilters({
@@ -72,7 +72,7 @@ export function BusinessFilters({
     ...(radius !== DEFAULT_RADIUS
       ? [{
           id: 'radius',
-          label: `Within ${radius} km`,
+          label: `Within ${radius} mi`,
           onRemove: () => { setRadius(DEFAULT_RADIUS); onRadiusChange(DEFAULT_RADIUS); },
         }]
       : []),
@@ -155,20 +155,20 @@ export function BusinessFilters({
               Distance
             </h3>
             <span className="text-xs font-semibold text-accent bg-accent/10 px-2 py-0.5 rounded-full">
-              Within {radius} km
+              Within {radius} mi
             </span>
           </div>
           <Slider
             value={[radius]}
             onValueChange={handleRadiusChange}
             min={1}
-            max={50}
+            max={30}
             step={1}
             className="w-full"
           />
           <div className="flex justify-between mt-1.5">
-            <span className="text-xs text-muted-foreground">1 km</span>
-            <span className="text-xs text-muted-foreground">50 km</span>
+            <span className="text-xs text-muted-foreground">1 mi</span>
+            <span className="text-xs text-muted-foreground">30 mi</span>
           </div>
         </div>
 
