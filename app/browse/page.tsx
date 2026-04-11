@@ -8,7 +8,8 @@ import { LocationDetector } from '@/components/location-detector';
 import { BusinessFilters } from '@/components/business-filters';
 import { BusinessCard } from '@/components/business-card';
 import { BusinessCardSkeleton } from '@/components/business-card-skeleton';
-import { BusinessMap } from '@/components/business-map';
+import { TileMap } from '@/components/tile-map';
+import { LocationEnvPanel } from '@/components/location-env-panel';
 import { Input } from '@/components/ui/input';
 import {
   AlertCircle,
@@ -351,7 +352,7 @@ export default function BrowsePage() {
         )}
 
         {location && (
-          <div className="mb-8">
+          <div className="mb-8 flex items-center gap-3 flex-wrap">
             <LocationTag
               city={location.city}
               country={location.country}
@@ -361,6 +362,7 @@ export default function BrowsePage() {
                 .pop()
                 ?.replace('_', ' ')}
             />
+            <LocationEnvPanel lat={location.lat} lng={location.lng} />
           </div>
         )}
 
@@ -392,10 +394,10 @@ export default function BrowsePage() {
                     <ResultsContent compact />
                   </div>
                   <div className="hidden sm:block lg:w-[44%] lg:sticky lg:top-28">
-                    <BusinessMap
+                    <TileMap
                       lat={location.lat}
                       lng={location.lng}
-                      category={selectedCategory}
+                      businesses={displayedBusinesses}
                       className="h-[calc(100vh-8rem)] min-h-[500px]"
                     />
                   </div>
