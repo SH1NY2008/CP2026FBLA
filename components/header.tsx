@@ -2,8 +2,8 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { Button as MovingBorderButton } from '@/components/ui/moving-border';
 import Link from 'next/link';
-import Image from 'next/image';
 import { useAuth } from '../hooks/useAuth';
 import { auth } from '../firebase';
 import { signOut } from 'firebase/auth';
@@ -50,9 +50,15 @@ export function Header() {
             <Link href="/login">
               <Button variant="ghost">Sign In</Button>
             </Link>
-            <Link href="/signup">
-              <Button>Sign Up</Button>
-            </Link>
+            <MovingBorderButton
+              as={Link}
+              href="/signup"
+              borderRadius="9999px"
+              containerClassName="h-9 min-w-[5.75rem] w-auto text-sm"
+              className="min-h-0 h-9 border border-neutral-200/80 bg-white text-neutral-950 shadow-none backdrop-blur-none hover:bg-neutral-100 hover:text-neutral-950 px-4 py-0 text-sm font-medium dark:border-neutral-300/50"
+            >
+              Sign Up
+            </MovingBorderButton>
           </>
         )}
       </nav>
