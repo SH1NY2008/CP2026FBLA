@@ -1,5 +1,6 @@
 'use client';
 
+/* Global top bar: same on every page — nav links, auth dropdown or sign-in, mobile sheet. */
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { useAuth } from '../hooks/useAuth';
@@ -14,6 +15,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Menu, X } from 'lucide-react';
 import { useState } from 'react';
+import { HelpQADialog } from '@/components/help-qa-dialog';
 
 const NAV_LINKS = [
   { label: 'Browse', href: '/browse' },
@@ -21,6 +23,7 @@ const NAV_LINKS = [
   { label: 'Deals', href: '/deals' },
   { label: 'Trip Planner', href: '/trip-planner' },
   { label: 'Portal', href: '/portal' },
+  { label: 'Help', href: '/help' },
 ];
 
 export function Header() {
@@ -29,30 +32,36 @@ export function Header() {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/90 border-b border-border/40 backdrop-blur-xl">
-      <nav className="max-w-7xl mx-auto flex items-center justify-between px-6 h-16">
+      <nav className="max-w-7xl mx-auto relative flex items-center justify-between px-6 h-16">
         {/* Logo */}
         <Link
           href="/"
-          className="font-black text-xl text-foreground tracking-tight shrink-0"
+          className="font-black text-xl text-foreground tracking-tight shrink-0 z-10"
         >
           BOOST
         </Link>
 
-        {/* Desktop nav links */}
-        <div className="hidden md:flex items-center gap-1">
-          {NAV_LINKS.map(({ label, href }) => (
-            <Link
-              key={href}
-              href={href}
-              className="whitespace-nowrap text-sm text-muted-foreground hover:text-foreground transition-colors px-3 py-2 rounded-full hover:bg-secondary/60"
-            >
-              {label}
-            </Link>
-          ))}
+        {/* Desktop nav — centered in the bar; logo left, actions right */}
+        <div className="pointer-events-none absolute inset-x-0 top-1/2 hidden -translate-y-1/2 md:flex md:justify-center">
+          <div className="pointer-events-auto flex items-center gap-0.5 lg:gap-1">
+            {NAV_LINKS.map(({ label, href }) => (
+              <Link
+                key={href}
+                href={href}
+                className="whitespace-nowrap text-sm text-muted-foreground hover:text-foreground transition-colors px-2 py-2 rounded-full hover:bg-secondary/60 lg:px-3"
+              >
+                {label}
+              </Link>
+            ))}
+          </div>
         </div>
 
-        {/* Desktop auth */}
-        <div className="hidden md:flex items-center justify-end gap-3 shrink-0">
+        <div className="flex items-center gap-1 sm:gap-2 shrink-0 ml-auto z-10">
+          {/* Interactive Q&A from any page; /help has the full layout */}
+          <HelpQADialog />
+
+          {/* Desktop auth */}
+          <div className="hidden md:flex items-center justify-end gap-3">
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger className="flex items-center gap-2 outline-none">
@@ -105,16 +114,17 @@ export function Header() {
               </Link>
             </>
           )}
-        </div>
+          </div>
 
-        {/* Mobile menu toggle */}
-        <button
-          className="md:hidden p-2 text-muted-foreground hover:text-foreground transition-colors"
-          onClick={() => setMobileOpen(!mobileOpen)}
-          aria-label="Toggle menu"
-        >
-          {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-        </button>
+          {/* Mobile menu toggle */}
+          <button
+            className="md:hidden p-2 text-muted-foreground hover:text-foreground transition-colors"
+            onClick={() => setMobileOpen(!mobileOpen)}
+            aria-label="Toggle menu"
+          >
+            {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
+        </div>
       </nav>
 
       {/* Mobile nav */}

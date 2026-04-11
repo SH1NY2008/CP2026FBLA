@@ -1,11 +1,16 @@
 'use client';
 
+/**
+ * Curated + mock deals grid; signed-in users can heart deals into Firestore for the dashboard.
+ * Categories are client-side filters only — the dataset is small enough not to need server paging.
+ */
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { Header } from '@/components/header';
 import { Container } from '@/components/ui/container';
 import { useAuth } from '@/hooks/useAuth';
 import { db } from '@/firebase';
-import { doc, getDoc, setDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
+import { getDoc, setDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
+import { userDataDoc } from '@/lib/firestore/schema';
 import { Heart, MapPin, Search, Star, Tag, SlidersHorizontal, LogIn, X } from 'lucide-react';
 import { MOCK_DEALS, type Deal } from '@/lib/deals-data';
 import Link from 'next/link';
@@ -161,7 +166,7 @@ export default function DealsPage() {
   // Load saved deal IDs from Firestore when user signs in
   useEffect(() => {
     if (!user) { setSavedIds(new Set()); return; }
-    getDoc(doc(db, 'savedDeals', user.uid)).then((snap) => {
+    getDoc(userDataDoc(db, 'savedDeals', user.uid)).then((snap) => {
       if (snap.exists()) {
         setSavedIds(new Set(snap.data().dealIds ?? []));
       }
@@ -181,7 +186,7 @@ export default function DealsPage() {
       return;
     }
 
-    const ref = doc(db, 'savedDeals', user.uid);
+    const ref = userDataDoc(db, 'savedDeals', user.uid);
     const alreadySaved = savedIds.has(dealId);
 
     // Optimistic update

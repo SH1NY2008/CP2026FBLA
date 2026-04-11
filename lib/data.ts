@@ -1,3 +1,4 @@
+/** Stub until reviews are persisted to Firestore — UI can call this and get a consistent shape. */
 export const addReview = (review: unknown) => {
   console.log('New review submitted:', review);
   return {
@@ -35,6 +36,7 @@ export function getBusinessById(_id: string): Business | undefined {
   return undefined;
 }
 
+/** Placeholder for redemption tracking — deals page uses Firestore for saves separately. */
 export function redeemDeal(_dealId: string): void {
   // no-op
 }

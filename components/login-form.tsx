@@ -14,6 +14,7 @@ import { useState } from "react";
 import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
 import { auth, googleProvider } from "../firebase";
 import { useRouter } from "next/navigation";
+import { validateEmailSyntax } from "@/lib/validation";
 
 export function LoginForm({ 
   className, 
@@ -27,8 +28,17 @@ export function LoginForm({
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    const em = validateEmailSyntax(email);
+    if (em) {
+      setError(em);
+      return;
+    }
+    if (!password) {
+      setError('Password is required.');
+      return;
+    }
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      await signInWithEmailAndPassword(auth, email.trim(), password);
       router.push('/deals');
     } catch (error: any) {
       if (error.code === 'auth/user-not-found') {

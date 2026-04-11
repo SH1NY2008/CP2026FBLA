@@ -1,12 +1,17 @@
 'use client';
 
+/**
+ * Builds an ordered route from bookmarked stops (Firestore) + optional "optimize" call.
+ * Travel mode maps to Google's Routes API semantics — see `/api/route-optimize`.
+ */
 import { useState, useEffect, useMemo } from 'react';
 import { Header } from '@/components/header';
 import { Container } from '@/components/ui/container';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { db } from '@/firebase';
-import { doc, getDoc } from 'firebase/firestore';
+import { userDataDoc } from '@/lib/firestore/schema';
+import { getDoc } from 'firebase/firestore';
 import Link from 'next/link';
 import {
   Route,
@@ -79,7 +84,7 @@ export default function TripPlannerPage() {
     const load = async () => {
       setLoading(true);
       try {
-        const snap = await getDoc(doc(db, 'bookmarks', user.uid));
+        const snap = await getDoc(userDataDoc(db, 'bookmarks', user.uid));
         const ids: string[] = snap.exists() ? (snap.data().placeIds ?? []) : [];
 
         const details = await Promise.all(

@@ -1,10 +1,14 @@
 'use client';
 
+/* Contact: syntactic checks on email/names; semantic checks on message length & substance. */
+import { useState } from 'react';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
 import { Button } from '@/components/ui/button';
 import { Mail, MessageSquare, Building2, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
+import { validateContactForm } from '@/lib/validation';
+import { toast } from 'sonner';
 
 const CONTACT_OPTIONS = [
   {
@@ -28,6 +32,26 @@ const CONTACT_OPTIONS = [
 ];
 
 export default function ContactPage() {
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [email, setEmail] = useState('');
+  const [subject, setSubject] = useState('');
+  const [message, setMessage] = useState('');
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [sent, setSent] = useState(false);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const next = validateContactForm({ firstName, lastName, email, subject, message });
+    setErrors(next);
+    if (Object.keys(next).length > 0) {
+      toast.error('Please fix the highlighted fields.');
+      return;
+    }
+    setSent(true);
+    toast.success('Message looks good — in a real deployment this would send to our team.');
+  };
+
   return (
     <main className="min-h-screen bg-background">
       <Header />
@@ -51,7 +75,7 @@ export default function ContactPage() {
           {/* Contact form */}
           <div className="lg:col-span-3 bg-card border border-border/60 rounded-2xl p-8">
             <h2 className="text-lg font-bold mb-6">Send a message</h2>
-            <form className="flex flex-col gap-4" onSubmit={(e) => e.preventDefault()}>
+            <form className="flex flex-col gap-4" onSubmit={handleSubmit} noValidate>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
@@ -59,9 +83,15 @@ export default function ContactPage() {
                   </label>
                   <input
                     type="text"
+                    autoComplete="given-name"
                     placeholder="Alex"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
                     className="bg-background border border-border rounded-xl px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/60 outline-none focus:border-foreground/30 transition-colors"
                   />
+                  {errors.firstName && (
+                    <p className="text-xs text-destructive">{errors.firstName}</p>
+                  )}
                 </div>
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
@@ -69,9 +99,15 @@ export default function ContactPage() {
                   </label>
                   <input
                     type="text"
+                    autoComplete="family-name"
                     placeholder="Smith"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
                     className="bg-background border border-border rounded-xl px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/60 outline-none focus:border-foreground/30 transition-colors"
                   />
+                  {errors.lastName && (
+                    <p className="text-xs text-destructive">{errors.lastName}</p>
+                  )}
                 </div>
               </div>
               <div className="flex flex-col gap-1.5">
@@ -80,21 +116,30 @@ export default function ContactPage() {
                 </label>
                 <input
                   type="email"
+                  autoComplete="email"
                   placeholder="your@email.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   className="bg-background border border-border rounded-xl px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/60 outline-none focus:border-foreground/30 transition-colors"
                 />
+                {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
               </div>
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Subject
                 </label>
-                <select className="bg-background border border-border rounded-xl px-4 py-2.5 text-sm text-foreground outline-none focus:border-foreground/30 transition-colors">
+                <select
+                  value={subject}
+                  onChange={(e) => setSubject(e.target.value)}
+                  className="bg-background border border-border rounded-xl px-4 py-2.5 text-sm text-foreground outline-none focus:border-foreground/30 transition-colors"
+                >
                   <option value="">Select a topic…</option>
                   <option value="general">General enquiry</option>
                   <option value="business">Business owner support</option>
                   <option value="bug">Report a bug</option>
                   <option value="press">Press &amp; partnerships</option>
                 </select>
+                {errors.subject && <p className="text-xs text-destructive">{errors.subject}</p>}
               </div>
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
@@ -103,14 +148,18 @@ export default function ContactPage() {
                 <textarea
                   rows={5}
                   placeholder="Tell us what's on your mind…"
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
                   className="bg-background border border-border rounded-xl px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/60 outline-none focus:border-foreground/30 transition-colors resize-none"
                 />
+                {errors.message && <p className="text-xs text-destructive">{errors.message}</p>}
               </div>
               <Button
                 type="submit"
+                disabled={sent}
                 className="rounded-xl bg-foreground text-background hover:bg-foreground/90 h-11 font-semibold mt-1"
               >
-                Send message <ArrowRight className="ml-2 w-4 h-4" />
+                {sent ? 'Sent' : 'Send message'} <ArrowRight className="ml-2 w-4 h-4" />
               </Button>
             </form>
           </div>
@@ -146,6 +195,7 @@ export default function ContactPage() {
                 { label: 'Browse local businesses', href: '/browse' },
                 { label: 'Try the AI Explorer', href: '/explore' },
                 { label: 'View current deals', href: '/deals' },
+                { label: 'Help & Q&A', href: '/help' },
                 { label: 'Claim your business', href: '/portal' },
               ].map(({ label, href }) => (
                 <Link

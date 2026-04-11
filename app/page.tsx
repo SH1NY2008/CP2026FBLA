@@ -1,5 +1,9 @@
 'use client';
 
+/**
+ * Marketing landing: hero, feature grid, how-it-works, featured businesses (live data),
+ * AI Explorer callout, resources, newsletter. Heavy Framer Motion here — keep sections in order for demos.
+ */
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
 import { FeaturedBusinesses } from '@/components/featured-businesses';
@@ -22,6 +26,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { useMemo } from 'react';
 
+/* Decorative SVG lines behind the hero — cheap to render, reads as "motion" without loading video. */
 function FloatingPaths({ position }: { position: number }) {
   const paths = useMemo(
     () =>
@@ -55,6 +60,7 @@ function FloatingPaths({ position }: { position: number }) {
   );
 }
 
+/* Each card links to a real route — tags are just for visual grouping in the grid. */
 const FEATURES = [
   {
     icon: Search,

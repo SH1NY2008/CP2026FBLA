@@ -1,5 +1,9 @@
 'use client';
 
+/**
+ * Custom slippy map for browse split view: fetches Map Tiles API raster tiles + pins businesses.
+ * Heavier than an iframe embed but we control markers, popovers, and styling end-to-end.
+ */
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { ZoomIn, ZoomOut, Crosshair, Star, Clock, Navigation, X } from 'lucide-react';
 import Image from 'next/image';

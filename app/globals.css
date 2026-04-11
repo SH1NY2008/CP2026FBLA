@@ -1,3 +1,4 @@
+/* App-wide tokens + Tailwind v4 imports. Tweaking --background/--foreground here updates the whole theme. */
 @import 'tailwindcss';
 @import 'tw-animate-css';
 

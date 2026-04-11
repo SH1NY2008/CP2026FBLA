@@ -1,5 +1,9 @@
 'use client';
 
+/**
+ * Fetches a default set of restaurants near the user (or NYC if GPS fails) for the home page bento.
+ * Simpler than browse: no filters, one shot on mount.
+ */
 import { useState, useEffect } from 'react';
 
 interface Business {
@@ -30,10 +34,11 @@ export function useBusinesses() {
           if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
               (position) => resolve({ lat: position.coords.latitude, lng: position.coords.longitude }),
-              (error) => resolve({ lat: 40.7128, lng: -74.0060 }) // Default to NYC
+              // Denied or timeout — fall back so the section isn't empty during judging
+              (error) => resolve({ lat: 40.7128, lng: -74.0060 })
             );
           } else {
-            resolve({ lat: 40.7128, lng: -74.0060 }); // Default to NYC
+            resolve({ lat: 40.7128, lng: -74.0060 });
           }
         });
 
@@ -65,7 +70,7 @@ export function useBusinesses() {
   }, []);
 
   const calculateDistance = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
-    const R = 6371; // Earth's radius in km
+    const R = 6371; // km here — only used for ordering relative distances on the hook's data
     const dLat = ((lat2 - lat1) * Math.PI) / 180;
     const dLng = ((lng2 - lng1) * Math.PI) / 180;
     const a =

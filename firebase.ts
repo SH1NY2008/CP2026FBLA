@@ -1,14 +1,14 @@
-// Import the functions you need from the SDKs you need
+/**
+ * Single Firebase client for the whole app: auth (email + Google), Firestore data,
+ * and Storage for anything upload-related. All secrets come from NEXT_PUBLIC_* env vars
+ * so Next can bundle them for the browser — fine for Firebase public keys, not for server-only secrets.
+ */
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
 
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
@@ -20,13 +20,13 @@ const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-// Initialize Analytics only on the client side
+// Analytics touches `window` — must not run during SSR or the build will complain.
 const analytics = typeof window !== 'undefined' ? getAnalytics(app) : null;
 
 export const auth = getAuth(app);
+/** Firestore instance — collection names and document shapes live in `lib/firestore/schema.ts`. */
 export const db = getFirestore(app);
 export const storage = getStorage(app);
 export const googleProvider = new GoogleAuthProvider();

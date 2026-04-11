@@ -5,6 +5,7 @@ import './globals.css'
 import { SplashScreenProvider } from '@/components/ui/splash-screen-provider'
 import { Toaster } from '@/components/ui/sonner'
 
+// Fonts are wired up for future use (e.g. mono for code blocks); body uses Tailwind's font-sans stack.
 const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
@@ -36,13 +37,16 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  /* Dark theme by default; suppressHydrationWarning keeps theme/extension mismatches out of the console. */
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
       <body className="font-sans antialiased bg-background text-foreground">
         <SplashScreenProvider>
           {children}
         </SplashScreenProvider>
+        {/* Sonner: toast notifications from explore, trip planner, deals, etc. */}
         <Toaster richColors position="bottom-right" />
+        {/* Vercel Analytics only in prod so local dev traffic doesn't skew charts */}
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>

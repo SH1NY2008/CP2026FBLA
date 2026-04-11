@@ -1,5 +1,9 @@
 'use client';
 
+/**
+ * Browse: location → Places nearby API → merge community ratings from Firestore → filter/sort client-side.
+ * Split view pairs the list with TileMap so judges can see map + list together.
+ */
 import { useState, useEffect, useMemo } from 'react';
 import { Container } from '@/components/ui/container';
 import { Header } from '@/components/header';
@@ -25,6 +29,7 @@ import {
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { getDocs, collection } from 'firebase/firestore';
 import { db } from '@/firebase';
+import { COLLECTIONS } from '@/lib/firestore/schema';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 
 interface Business {
@@ -50,6 +55,7 @@ interface Location {
   country: string;
 }
 
+/* Google Nearby Search accepts one type or pipe-separated types — we map UI tabs to that string. */
 const TYPE_MAP: Record<string, string> = {
   restaurant: 'restaurant',
   shopping: 'shopping_mall|store|supermarket',
@@ -82,6 +88,7 @@ export default function BrowsePage() {
     if (location) {
       fetchBusinesses();
     }
+    /* Intentionally omit fetchBusinesses from deps — we only refetch when location/filters change, not when the callback identity changes. */
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location, selectedCategory, radius, selectedPrices]);
 
@@ -92,7 +99,7 @@ export default function BrowsePage() {
 
     try {
       const placeType = TYPE_MAP[selectedCategory] || 'restaurant';
-      const radiusInMeters = radius * 1609.34; // miles to meters
+      const radiusInMeters = radius * 1609.34; // Places API wants meters; UI is in miles
 
       const response = await fetch(
         `/api/places/nearby?lat=${location.lat}&lng=${location.lng}&radius=${radiusInMeters}&type=${placeType}`
@@ -103,7 +110,8 @@ export default function BrowsePage() {
       const data = await response.json();
       if (data.status !== 'OK') throw new Error(data.error_message || 'No results found');
 
-      const ratingsSnapshot = await getDocs(collection(db, 'businessRatings'));
+      /* Overlay our own aggregates on top of Google ratings when we have them (same placeId key). */
+      const ratingsSnapshot = await getDocs(collection(db, COLLECTIONS.businessRatings));
       const firestoreRatings: Record<string, { rating: number; ratingCount: number }> = {};
       ratingsSnapshot.forEach((doc) => {
         firestoreRatings[doc.id] = doc.data() as { rating: number; ratingCount: number };
@@ -134,6 +142,7 @@ export default function BrowsePage() {
     }
   };
 
+  /* Haversine in miles — matches how we label distances on cards. */
   const calculateDistance = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
     const R = 3958.8; // Earth's radius in miles
     const dLat = ((lat2 - lat1) * Math.PI) / 180;
@@ -146,6 +155,7 @@ export default function BrowsePage() {
     return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   };
 
+  /* Search / open-now / sort are pure client filters — no extra network round-trips. */
   const displayedBusinesses = useMemo(() => {
     let result = [...businesses];
 

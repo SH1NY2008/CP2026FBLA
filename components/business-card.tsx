@@ -1,5 +1,9 @@
 'use client';
 
+/**
+ * Shared card for browse, dashboard bookmarks, etc. Gradient/icon picks the first meaningful
+ * Google `types[]` entry — Places often sends several generic tags, so we map the ones we care about.
+ */
 import { Card } from '@/components/ui/card';
 import { Clock, Navigation, Star } from 'lucide-react';
 import Image from 'next/image';
@@ -75,6 +79,7 @@ export function BusinessCard({
   const gradient = TYPE_GRADIENTS[primaryType] || 'from-zinc-500/20 to-neutral-600/30';
   const icon = TYPE_ICONS[primaryType] || '📍';
 
+  // place_id in the URL helps Google open the right business even if the address string is messy
   const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(address)}&destination_place_id=${placeId}`;
 
   return (

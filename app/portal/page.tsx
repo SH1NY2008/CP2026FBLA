@@ -1,5 +1,9 @@
 'use client';
 
+/**
+ * Business portal: search nearby → claim a place → manage it via `/portal/[placeId]`.
+ * Firestore helpers live in `@/lib/business-portal` so this file stays mostly UI.
+ */
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Header } from '@/components/header';
 import { Container } from '@/components/ui/container';

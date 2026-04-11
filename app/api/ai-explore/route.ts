@@ -1,3 +1,8 @@
+/**
+ * AI Explorer backend: calls Google's Maps MCP "search_places" tool, then enriches each hit
+ * via Place Details (photos, hours, etc.) so the frontend cards look polished.
+ * Handles both JSON and SSE-style MCP responses — the endpoint is a bit chatty either way.
+ */
 import { NextRequest, NextResponse } from 'next/server';
 
 interface GroundingPlace {

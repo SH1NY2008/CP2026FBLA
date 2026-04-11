@@ -1,26 +1,26 @@
 import {
   collection,
-  doc,
   getDoc,
   getDocs,
   query,
   where,
 } from 'firebase/firestore';
 import { db } from '@/firebase';
+import { COLLECTIONS, placeDataDoc } from '@/lib/firestore/schema';
 import type { PlaceAnalytics } from './types';
 
 export async function getPlaceAnalytics(placeId: string): Promise<PlaceAnalytics> {
   const [checkinSnap, bookmarkSnap, ratingsSnap, commentsSnap, photosSnap] = await Promise.all([
-    getDoc(doc(db, 'checkins', placeId)),
-    getDocs(query(collection(db, 'bookmarks'))),
-    getDoc(doc(db, 'businessRatings', placeId)),
-    getDocs(query(collection(db, 'comments'), where('placeId', '==', placeId))),
-    getDocs(query(collection(db, 'communityPhotos'), where('placeId', '==', placeId))),
+    getDoc(placeDataDoc(db, 'checkins', placeId)),
+    getDocs(query(collection(db, COLLECTIONS.bookmarks))),
+    getDoc(placeDataDoc(db, 'businessRatings', placeId)),
+    getDocs(query(collection(db, COLLECTIONS.comments), where('placeId', '==', placeId))),
+    getDocs(query(collection(db, COLLECTIONS.communityPhotos), where('placeId', '==', placeId))),
   ]);
 
   let totalBookmarks = 0;
   bookmarkSnap.forEach((d) => {
-    const ids: string[] = d.data().placeIds ?? [];
+    const ids: string[] = (d.data().placeIds as string[] | undefined) ?? [];
     if (ids.includes(placeId)) totalBookmarks++;
   });
 

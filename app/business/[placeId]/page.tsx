@@ -59,10 +59,13 @@ import {
   onSnapshot,
   serverTimestamp,
 } from 'firebase/firestore';
+import { ref as storageRef, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
+import { db, storage } from '@/firebase';
+import { COLLECTIONS, placeDataDoc, userDataDoc } from '@/lib/firestore/schema';
 
 // Writes activity to userActivity/{uid} so the dashboard can read metrics
 async function trackUserCheckin(uid: string, placeId: string, types: string[]) {
-  const ref = doc(db, 'userActivity', uid);
+  const ref = userDataDoc(db, 'userActivity', uid);
   const snap = await getDoc(ref);
   const typeMap: Record<string, number> = {};
   types.forEach(t => { typeMap[t] = increment(1) as unknown as number; });
@@ -88,7 +91,7 @@ async function trackUserCheckin(uid: string, placeId: string, types: string[]) {
 }
 
 async function trackUserRating(uid: string, placeId: string, types: string[]) {
-  const ref = doc(db, 'userActivity', uid);
+  const ref = userDataDoc(db, 'userActivity', uid);
   const snap = await getDoc(ref);
 
   if (snap.exists()) {
@@ -108,8 +111,6 @@ async function trackUserRating(uid: string, placeId: string, types: string[]) {
     });
   }
 }
-import { ref as storageRef, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
-import { db, storage } from '@/firebase';
 import { Button } from '@/components/ui/button';
 import { CommentSection } from '@/components/comment-section';
 import { ReviewForm } from '@/components/review-form';
@@ -323,7 +324,7 @@ export default function BusinessDetailsPage() {
 
   useEffect(() => {
     if (user && placeId) {
-      getDoc(doc(db, 'bookmarks', user.uid)).then((snap) => {
+      getDoc(userDataDoc(db, 'bookmarks', user.uid)).then((snap) => {
         if (snap.exists() && snap.data().placeIds?.includes(placeId)) setIsBookmarked(true);
       });
     }
@@ -344,7 +345,7 @@ export default function BusinessDetailsPage() {
 
         let rating = data.result.rating;
         let count = data.result.user_ratings_total;
-        const ratingSnap = await getDoc(doc(db, 'businessRatings', placeId));
+        const ratingSnap = await getDoc(placeDataDoc(db, 'businessRatings', placeId));
         if (ratingSnap.exists()) {
           const d = ratingSnap.data();
           if (d.rating && d.ratingCount) { rating = d.rating; count = d.ratingCount; }
@@ -400,7 +401,7 @@ export default function BusinessDetailsPage() {
   // Check-in data
   useEffect(() => {
     if (!placeId) return;
-    getDoc(doc(db, 'checkins', placeId)).then((snap) => {
+    getDoc(placeDataDoc(db, 'checkins', placeId)).then((snap) => {
       if (snap.exists()) {
         setCheckinCount(snap.data().count ?? 0);
         if (user) setHasCheckedIn(snap.data().userIds?.includes(user.uid) ?? false);
@@ -411,7 +412,7 @@ export default function BusinessDetailsPage() {
   // Community photos — real-time
   useEffect(() => {
     if (!placeId) return;
-    const q = query(collection(db, 'communityPhotos'), where('placeId', '==', placeId));
+    const q = query(collection(db, COLLECTIONS.communityPhotos), where('placeId', '==', placeId));
     const unsub = onSnapshot(q, (snap) => {
       const photos: CommunityPhoto[] = [];
       snap.forEach((d) => photos.push({ id: d.id, ...d.data() } as CommunityPhoto));
@@ -482,7 +483,7 @@ export default function BusinessDetailsPage() {
 
   const handleBookmark = async () => {
     if (!user) return;
-    const ref = doc(db, 'bookmarks', user.uid);
+    const ref = userDataDoc(db, 'bookmarks', user.uid);
     const snap = await getDoc(ref);
     if (snap.exists()) {
       await updateDoc(ref, { placeIds: isBookmarked ? arrayRemove(placeId) : arrayUnion(placeId) });
@@ -498,7 +499,7 @@ export default function BusinessDetailsPage() {
     const cnt = displayRatingCount ?? 0;
     const avg = (cur * cnt + newRating) / (cnt + 1);
     try {
-      await setDoc(doc(db, 'businessRatings', placeId), { rating: avg, ratingCount: cnt + 1 });
+      await setDoc(placeDataDoc(db, 'businessRatings', placeId), { rating: avg, ratingCount: cnt + 1 });
     } catch (e) { console.error(e); }
     setDisplayRating(avg);
     setDisplayRatingCount(cnt + 1);
@@ -521,7 +522,7 @@ export default function BusinessDetailsPage() {
   const handleCheckin = async () => {
     if (!user) { toast.error('Sign in to check in'); return; }
     if (hasCheckedIn) return;
-    const ref = doc(db, 'checkins', placeId);
+    const ref = placeDataDoc(db, 'checkins', placeId);
     const snap = await getDoc(ref);
     if (snap.exists()) {
       await updateDoc(ref, { count: increment(1), userIds: arrayUnion(user.uid) });
@@ -549,7 +550,7 @@ export default function BusinessDetailsPage() {
       (err) => { console.error(err); toast.error('Upload failed'); setUploadProgress(null); },
       async () => {
         const url = await getDownloadURL(task.snapshot.ref);
-        await addDoc(collection(db, 'communityPhotos'), {
+        await addDoc(collection(db, COLLECTIONS.communityPhotos), {
           placeId,
           url,
           authorId: user.uid,

@@ -1,11 +1,13 @@
 'use client';
 
+/* Site-wide footer: marquee band + columns. "About" points at dashboard for now — swap if you add a real about page. */
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 
 const NAV_LINKS = [
   { label: 'Browse', href: '/browse' },
   { label: 'Deals', href: '/deals' },
+  { label: 'Help', href: '/help' },
   { label: 'Resources', href: '/resources' },
   { label: 'About', href: '/dashboard' },
   { label: 'Contact', href: '/contact' },

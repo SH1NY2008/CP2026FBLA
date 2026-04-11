@@ -1,5 +1,9 @@
 'use client';
 
+/**
+ * AI Explorer: natural-language query → `/api/ai-explore` (Google Maps grounding + Places details).
+ * Optional GPS bias so "near me" actually means near the user. History is session-only for quick compare.
+ */
 import { useState, useRef, useEffect } from 'react';
 import { Header } from '@/components/header';
 import { Container } from '@/components/ui/container';
@@ -60,6 +64,7 @@ interface HistoryEntry {
 
 const PRICE_DISPLAY: Record<number, string> = { 1: '$', 2: '$$', 3: '$$$', 4: '$$$$' };
 
+/* Starter prompts — good for demos so nobody stares at a blank input. */
 const SUGGESTED_QUERIES = [
   { icon: Utensils, text: 'Best date night restaurants nearby', color: 'text-orange-400' },
   { icon: Coffee, text: 'Cozy cafes with good wifi for working', color: 'text-amber-400' },
@@ -106,6 +111,7 @@ export default function ExplorePage() {
     setResult(null);
 
     try {
+      // 5km bias is a sweet spot: local enough to feel relevant, wide enough to return results.
       const res = await fetch('/api/ai-explore', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

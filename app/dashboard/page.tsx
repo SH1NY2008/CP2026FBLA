@@ -1,10 +1,15 @@
 'use client';
 
+/**
+ * Signed-in hub: bookmarks, saved deals, activity stats — pulls from Firestore by uid.
+ * Bookmark cards reuse the same BusinessCard component as browse for consistency.
+ */
 import { useState, useEffect, useMemo } from 'react';
 import { Header } from '@/components/header';
 import { Container } from '@/components/ui/container';
 import { useAuth } from '@/hooks/useAuth';
 import { db } from '@/firebase';
+import { COLLECTIONS, userDataDoc } from '@/lib/firestore/schema';
 import {
   doc,
   getDoc,
@@ -55,6 +60,7 @@ interface BookmarkedBusiness {
   geometry: { location: { lat: number; lng: number } };
 }
 
+/* Filter noisy Google place types so the "interests" tag cloud stays readable. */
 const SKIP_TYPES = new Set([
   'point_of_interest', 'establishment', 'food', 'premise', 'political',
   'locality', 'sublocality', 'route', 'country',
@@ -129,9 +135,9 @@ export default function DashboardPage() {
       setLoading(true);
       try {
         const [actSnap, bookmarkSnap, savedDealsSnap] = await Promise.all([
-          getDoc(doc(db, 'userActivity', user.uid)),
-          getDoc(doc(db, 'bookmarks', user.uid)),
-          getDoc(doc(db, 'savedDeals', user.uid)),
+          getDoc(userDataDoc(db, 'userActivity', user.uid)),
+          getDoc(userDataDoc(db, 'bookmarks', user.uid)),
+          getDoc(userDataDoc(db, 'savedDeals', user.uid)),
         ]);
 
         if (actSnap.exists()) setActivity(actSnap.data() as UserActivity);
@@ -143,8 +149,8 @@ export default function DashboardPage() {
         setSavedDeals(dealIds.map((id) => DEALS_BY_ID[id]).filter(Boolean) as Deal[]);
 
         const [commentsSnap, photosSnap] = await Promise.all([
-          getDocs(query(collection(db, 'comments'), where('authorId', '==', user.uid))),
-          getDocs(query(collection(db, 'communityPhotos'), where('authorId', '==', user.uid))),
+          getDocs(query(collection(db, COLLECTIONS.comments), where('authorId', '==', user.uid))),
+          getDocs(query(collection(db, COLLECTIONS.communityPhotos), where('authorId', '==', user.uid))),
         ]);
         setCommentCount(commentsSnap.size);
         setPhotoCount(photosSnap.size);

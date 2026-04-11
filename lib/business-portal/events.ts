@@ -11,12 +11,13 @@ import {
   where,
 } from 'firebase/firestore';
 import { db } from '@/firebase';
+import { COLLECTIONS } from '@/lib/firestore/schema';
 import type { BusinessEvent } from './types';
 
 export async function createEvent(
   evt: Omit<BusinessEvent, 'id' | 'createdAt' | 'rsvpCount' | 'rsvpUserIds'>,
 ): Promise<string> {
-  const ref = await addDoc(collection(db, 'businessEvents'), {
+  const ref = await addDoc(collection(db, COLLECTIONS.businessEvents), {
     ...evt,
     rsvpCount: 0,
     rsvpUserIds: [],
@@ -26,7 +27,7 @@ export async function createEvent(
 }
 
 export async function getEventsForBusiness(placeId: string): Promise<BusinessEvent[]> {
-  const q = query(collection(db, 'businessEvents'), where('placeId', '==', placeId));
+  const q = query(collection(db, COLLECTIONS.businessEvents), where('placeId', '==', placeId));
   const snap = await getDocs(q);
   return snap.docs
     .map((d) => ({ id: d.id, ...d.data() } as BusinessEvent))
@@ -34,11 +35,11 @@ export async function getEventsForBusiness(placeId: string): Promise<BusinessEve
 }
 
 export async function deleteEvent(id: string): Promise<void> {
-  await deleteDoc(doc(db, 'businessEvents', id));
+  await deleteDoc(doc(db, COLLECTIONS.businessEvents, id));
 }
 
 export async function rsvpToEvent(eventId: string, userId: string): Promise<void> {
-  const ref = doc(db, 'businessEvents', eventId);
+  const ref = doc(db, COLLECTIONS.businessEvents, eventId);
   const snap = await getDoc(ref);
   if (!snap.exists()) return;
   const data = snap.data();

@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { db } from '@/firebase';
+import { COLLECTIONS } from '@/lib/firestore/schema';
 import {
   collection,
   query,
@@ -22,6 +23,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { CommentCard } from '@/components/comment-card';
 import { MessageSquare, X } from 'lucide-react';
 import Link from 'next/link';
+import { toast } from 'sonner';
+import { validateCommentBody } from '@/lib/validation';
 
 interface Comment {
   id: string;
@@ -56,7 +59,7 @@ export function CommentSection({ placeId }: CommentSectionProps) {
   useEffect(() => {
     if (!placeId) return;
 
-    const q = query(collection(db, 'comments'), where('placeId', '==', placeId));
+    const q = query(collection(db, COLLECTIONS.comments), where('placeId', '==', placeId));
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const all: Comment[] = [];
@@ -104,9 +107,14 @@ export function CommentSection({ placeId }: CommentSectionProps) {
 
   const handlePost = async () => {
     if (!user || !newComment.trim()) return;
+    const err = validateCommentBody(newComment);
+    if (err) {
+      toast.error(err);
+      return;
+    }
     setSubmitting(true);
     try {
-      await addDoc(collection(db, 'comments'), {
+      await addDoc(collection(db, COLLECTIONS.comments), {
         placeId,
         author: user.displayName || 'Anonymous',
         authorId: user.uid,
@@ -126,9 +134,14 @@ export function CommentSection({ placeId }: CommentSectionProps) {
 
   const handleReplySubmit = async (parentId: string) => {
     if (!user || !replyText.trim()) return;
+    const err = validateCommentBody(replyText);
+    if (err) {
+      toast.error(err);
+      return;
+    }
     setReplySubmitting(true);
     try {
-      await addDoc(collection(db, 'comments'), {
+      await addDoc(collection(db, COLLECTIONS.comments), {
         placeId,
         author: user.displayName || 'Anonymous',
         authorId: user.uid,
@@ -156,17 +169,17 @@ export function CommentSection({ placeId }: CommentSectionProps) {
   };
 
   const handleLike = async (id: string) => {
-    await updateDoc(doc(db, 'comments', id), { likes: increment(1) });
+    await updateDoc(doc(db, COLLECTIONS.comments, id), { likes: increment(1) });
   };
 
   const handleDislike = async (id: string) => {
-    await updateDoc(doc(db, 'comments', id), { dislikes: increment(1) });
+    await updateDoc(doc(db, COLLECTIONS.comments, id), { dislikes: increment(1) });
   };
 
   const handleDelete = async (id: string) => {
-    await deleteDoc(doc(db, 'comments', id));
-    const repliesSnap = await getDocs(query(collection(db, 'comments'), where('parentId', '==', id)));
-    repliesSnap.forEach(async (r) => deleteDoc(doc(db, 'comments', r.id)));
+    await deleteDoc(doc(db, COLLECTIONS.comments, id));
+    const repliesSnap = await getDocs(query(collection(db, COLLECTIONS.comments), where('parentId', '==', id)));
+    repliesSnap.forEach(async (r) => deleteDoc(doc(db, COLLECTIONS.comments, r.id)));
   };
 
   const totalCount = comments.reduce((n, c) => n + 1 + (c.replies?.length ?? 0), 0);

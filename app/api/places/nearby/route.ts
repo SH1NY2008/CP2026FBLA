@@ -1,3 +1,7 @@
+/**
+ * GET /api/places/nearby — thin HTTP wrapper around Google Places Nearby Search.
+ * Validates query params with Zod so bad lat/lng/radius never hits Google's billing.
+ */
 import { NextRequest, NextResponse } from 'next/server';
 import { fetchNearbySearch } from '@/lib/places';
 import { requireGoogleMapsKey } from '@/lib/server/google-maps-route';

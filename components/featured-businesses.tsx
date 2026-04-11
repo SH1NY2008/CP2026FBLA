@@ -1,5 +1,9 @@
 'use client';
 
+/**
+ * Home page "Featured" bento: same nearby API as browse, but we only show a handful for layout balance.
+ * Spans (md:col-span-2) break the grid rhythm on purpose — looks less like a boring uniform grid.
+ */
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
@@ -55,7 +59,7 @@ function BentoSkeleton() {
 
 export function FeaturedBusinesses() {
   const { businesses, loading, error } = useBusinesses();
-  const featured = businesses.slice(0, 7);
+  const featured = businesses.slice(0, 7); // seven tiles matches the bento template (1 wide + rest)
 
   return (
     <section className="py-28 px-6 max-w-7xl mx-auto">

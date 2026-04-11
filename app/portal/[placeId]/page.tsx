@@ -78,6 +78,8 @@ import {
 } from '@/lib/business-portal';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '@/firebase';
+import { COLLECTIONS } from '@/lib/firestore/schema';
+import { validateDealPrices, validateEventTimes } from '@/lib/validation';
 import { SolarPanel } from '@/components/solar-panel';
 import { AreaInsights } from '@/components/area-insights';
 
@@ -575,6 +577,13 @@ function DealsTab({ placeId, ownerId }: { placeId: string; ownerId: string }) {
       toast.error('Fill in required fields');
       return;
     }
+    const o = parseFloat(originalPrice);
+    const s = parseFloat(salePrice);
+    const priceErr = validateDealPrices(o, s);
+    if (priceErr) {
+      toast.error(priceErr);
+      return;
+    }
     setSubmitting(true);
     try {
       await createDeal({
@@ -582,8 +591,8 @@ function DealsTab({ placeId, ownerId }: { placeId: string; ownerId: string }) {
         ownerId,
         title: title.trim(),
         description: description.trim(),
-        originalPrice: parseFloat(originalPrice),
-        salePrice: parseFloat(salePrice),
+        originalPrice: o,
+        salePrice: s,
         promoCode: promoCode.trim() || undefined,
         category,
         imageUrl: imageUrl.trim() || 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=600&q=80',
@@ -857,6 +866,11 @@ function EventsTab({ placeId, ownerId }: { placeId: string; ownerId: string }) {
 
   const handleCreate = async () => {
     if (!title.trim() || !date) { toast.error('Fill in required fields'); return; }
+    const timeErr = validateEventTimes(startTime, endTime);
+    if (timeErr) {
+      toast.error(timeErr);
+      return;
+    }
     setSubmitting(true);
     try {
       await createEvent({ placeId, ownerId, title: title.trim(), description: description.trim(), date, startTime, endTime });
@@ -1134,7 +1148,7 @@ function ReviewsTab({
     const load = async () => {
       setLoading(true);
       try {
-        const q = query(collection(db, 'comments'), where('placeId', '==', placeId));
+        const q = query(collection(db, COLLECTIONS.comments), where('placeId', '==', placeId));
         const snap = await getDocs(q);
         const list = snap.docs
           .map((d) => ({

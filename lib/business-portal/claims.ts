@@ -1,6 +1,5 @@
 import {
   collection,
-  doc,
   getDoc,
   getDocs,
   query,
@@ -10,6 +9,7 @@ import {
   where,
 } from 'firebase/firestore';
 import { db } from '@/firebase';
+import { COLLECTIONS, placeDataDoc } from '@/lib/firestore/schema';
 import type { ClaimedBusiness } from './types';
 
 export async function claimBusiness(
@@ -17,7 +17,7 @@ export async function claimBusiness(
   ownerId: string,
   ownerEmail: string,
 ): Promise<void> {
-  await setDoc(doc(db, 'claimedBusinesses', placeId), {
+  await setDoc(placeDataDoc(db, 'claimedBusinesses', placeId), {
     placeId,
     ownerId,
     ownerEmail,
@@ -33,12 +33,12 @@ export async function claimBusiness(
 }
 
 export async function getClaimedBusiness(placeId: string): Promise<ClaimedBusiness | null> {
-  const snap = await getDoc(doc(db, 'claimedBusinesses', placeId));
+  const snap = await getDoc(placeDataDoc(db, 'claimedBusinesses', placeId));
   return snap.exists() ? (snap.data() as ClaimedBusiness) : null;
 }
 
 export async function getBusinessesOwnedBy(ownerId: string): Promise<ClaimedBusiness[]> {
-  const q = query(collection(db, 'claimedBusinesses'), where('ownerId', '==', ownerId));
+  const q = query(collection(db, COLLECTIONS.claimedBusinesses), where('ownerId', '==', ownerId));
   const snap = await getDocs(q);
   return snap.docs.map((d) => d.data() as ClaimedBusiness);
 }
@@ -48,5 +48,5 @@ export async function updateBusinessProfile(
   data: Partial<ClaimedBusiness>,
 ): Promise<void> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  await updateDoc(doc(db, 'claimedBusinesses', placeId), data as any);
+  await updateDoc(placeDataDoc(db, 'claimedBusinesses', placeId), data as any);
 }

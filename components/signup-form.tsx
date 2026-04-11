@@ -14,6 +14,7 @@ import { useState } from "react";
 import { createUserWithEmailAndPassword, signInWithPopup } from "firebase/auth";
 import { auth, googleProvider } from "../firebase";
 import { useRouter } from "next/navigation";
+import { validateEmailSyntax, validatePasswordSignup } from "@/lib/validation";
 
 export function SignUpForm({ 
   className, 
@@ -21,15 +22,28 @@ export function SignUpForm({
 }: React.ComponentProps<"form">) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [formError, setFormError] = useState('');
   const router = useRouter();
 
   const handleEmailSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFormError('');
+    const em = validateEmailSyntax(email);
+    if (em) {
+      setFormError(em);
+      return;
+    }
+    const pw = validatePasswordSignup(password);
+    if (pw) {
+      setFormError(pw);
+      return;
+    }
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
+      await createUserWithEmailAndPassword(auth, email.trim(), password);
       router.push('/deals');
     } catch (error) {
       console.error('Error signing up:', error);
+      setFormError('Could not create account. That email may already be in use.');
     }
   };
 
@@ -52,6 +66,11 @@ export function SignUpForm({
           <p className="text-sm text-balance text-muted-foreground">
             Enter your email below to create your account
           </p>
+          {formError && (
+            <p className="text-sm text-destructive font-medium w-full" role="alert">
+              {formError}
+            </p>
+          )}
         </div>
         <Field>
           <FieldLabel htmlFor="email">Email</FieldLabel>

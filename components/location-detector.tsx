@@ -1,5 +1,9 @@
 'use client';
 
+/**
+ * First-run location UX: try GPS + reverse geocode for a friendly city label,
+ * or fall back to the child (CountryBrowser / manual search) when GPS isn't an option.
+ */
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -39,6 +43,7 @@ export function LocationDetector({ onLocationFound, children }: LocationDetector
       async (position) => {
         const { latitude, longitude } = position.coords;
         try {
+          // Turn coords into something humans recognize in the UI (city, country).
           const response = await fetch(
             `/api/places/reverse-geocode?lat=${latitude}&lng=${longitude}`
           );
