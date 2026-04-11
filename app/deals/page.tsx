@@ -244,22 +244,49 @@ export default function DealsPage() {
       <Container className="max-w-7xl pt-28 pb-16">
 
         {/* Page header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-1">Exclusive Deals</h1>
-          <p className="text-muted-foreground text-sm">
-            Handpicked savings from top local and national businesses
+        <div className="pt-6 mb-10 border-b border-border/50 pb-10">
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">
+            Handpicked savings
           </p>
+          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+            <div>
+              <h1 className="text-4xl md:text-5xl font-black tracking-tighter leading-[1] mb-2">
+                Exclusive{' '}
+                <span className="text-muted-foreground">Deals</span>
+              </h1>
+              <p className="text-muted-foreground text-sm">
+                Handpicked savings from top local and national businesses
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Category chips */}
+        <div className="flex flex-wrap gap-2 mb-6">
+          {CATEGORIES.map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setSelectedCategory(cat)}
+              className={`px-4 py-2 rounded-full text-sm font-medium border transition-all duration-200 ${
+                selectedCategory === cat
+                  ? 'bg-foreground text-background border-foreground'
+                  : 'border-border text-muted-foreground hover:border-foreground/40 hover:text-foreground hover:bg-secondary'
+              }`}
+            >
+              {cat}
+            </button>
+          ))}
         </div>
 
         {/* Toolbar */}
-        <div className="flex flex-col sm:flex-row gap-3 mb-6">
+        <div className="flex flex-col sm:flex-row gap-3 mb-8">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
             <input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search deals…"
-              className="w-full pl-9 pr-4 h-10 text-sm rounded-xl border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-accent/60 transition-colors"
+              className="w-full pl-9 pr-4 h-10 text-sm rounded-full border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-border/80 transition-colors"
             />
           </div>
           <div className="flex items-center gap-2">
@@ -267,30 +294,13 @@ export default function DealsPage() {
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-              className="h-10 text-sm px-3 rounded-xl border border-border bg-background text-foreground cursor-pointer focus:outline-none hover:border-accent/50 transition-colors"
+              className="h-10 text-sm px-4 rounded-full border border-border bg-background text-foreground cursor-pointer focus:outline-none hover:bg-secondary transition-colors"
             >
               <option value="discount">Best discount</option>
               <option value="rating">Top rated</option>
               <option value="price">Price: low → high</option>
             </select>
           </div>
-        </div>
-
-        {/* Category chips */}
-        <div className="flex flex-wrap gap-2 mb-8">
-          {CATEGORIES.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setSelectedCategory(cat)}
-              className={`px-4 py-1.5 rounded-full text-sm font-medium border transition-all duration-200 ${
-                selectedCategory === cat
-                  ? 'bg-foreground text-background border-foreground'
-                  : 'border-border text-muted-foreground hover:border-foreground/40 hover:text-foreground'
-              }`}
-            >
-              {cat}
-            </button>
-          ))}
         </div>
 
         {/* Results count */}

@@ -1,78 +1,139 @@
-
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Button as MovingBorderButton } from '@/components/ui/moving-border';
 import Link from 'next/link';
 import { useAuth } from '../hooks/useAuth';
 import { auth } from '../firebase';
 import { signOut } from 'firebase/auth';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Menu, X } from 'lucide-react';
+import { useState } from 'react';
+
+const NAV_LINKS = [
+  { label: 'Browse', href: '/browse' },
+  { label: 'Deals', href: '/deals' },
+  { label: 'Dashboard', href: '/dashboard' },
+];
 
 export function Header() {
   const { user } = useAuth();
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <header className="fixed top-5 left-1/2 -translate-x-1/2 z-50 w-auto max-w-[calc(100vw-2rem)]">
-      <nav className="flex items-center gap-1 sm:gap-2 bg-card/70 border border-border/60 rounded-full px-4 sm:px-6 py-2.5 shadow-2xl shadow-black/20 backdrop-blur-xl">
-        <Link href="/" className="font-black text-lg text-foreground tracking-tight mr-2 sm:mr-4 shrink-0">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-background/90 border-b border-border/40 backdrop-blur-xl">
+      <nav className="max-w-7xl mx-auto grid grid-cols-3 items-center px-6 h-16">
+        {/* Logo */}
+        <Link
+          href="/"
+          className="font-black text-xl text-foreground tracking-tight shrink-0"
+        >
           BOOST
         </Link>
 
-        <div className="hidden sm:flex items-center gap-1">
-          <Link href="/browse" className="text-sm text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5 rounded-full hover:bg-muted/50">
-            Browse
-          </Link>
-          <Link href="/deals" className="text-sm text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5 rounded-full hover:bg-muted/50">
-            Deals
-          </Link>
-          <Link href="/dashboard" className="text-sm text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5 rounded-full hover:bg-muted/50">
-            Dashboard
-          </Link>
+        {/* Desktop nav links — truly centered */}
+        <div className="hidden md:flex items-center justify-center gap-1">
+          {NAV_LINKS.map(({ label, href }) => (
+            <Link
+              key={href}
+              href={href}
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors px-4 py-2 rounded-full hover:bg-secondary/60"
+            >
+              {label}
+            </Link>
+          ))}
         </div>
 
-        <div className="w-px h-5 bg-border/50 mx-1 sm:mx-2 shrink-0" />
-
-        {user ? (
-          <DropdownMenu>
-            <DropdownMenuTrigger className="flex items-center gap-2 outline-none">
-              <Avatar className="h-8 w-8">
-                <AvatarImage src={user.photoURL || ''} />
-                <AvatarFallback className="text-xs font-semibold">{user.email?.[0].toUpperCase()}</AvatarFallback>
-              </Avatar>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="min-w-[160px]">
-              {user.displayName && (
-                <DropdownMenuItem disabled className="text-xs text-muted-foreground font-medium">
-                  {user.displayName}
+        {/* Desktop auth */}
+        <div className="hidden md:flex items-center justify-end gap-3 shrink-0">
+          {user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger className="flex items-center gap-2 outline-none">
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={user.photoURL || ''} />
+                  <AvatarFallback className="text-xs font-semibold">
+                    {user.email?.[0].toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="min-w-[160px]">
+                {user.displayName && (
+                  <DropdownMenuItem disabled className="text-xs text-muted-foreground font-medium">
+                    {user.displayName}
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuItem asChild>
+                  <Link href="/dashboard">Dashboard</Link>
                 </DropdownMenuItem>
-              )}
-              <DropdownMenuItem asChild>
-                <Link href="/dashboard">Dashboard</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => signOut(auth)}>
-                Sign Out
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        ) : (
-          <div className="flex items-center gap-1.5">
-            <Link href="/login">
-              <Button variant="ghost" size="sm" className="text-sm h-8 px-3 rounded-full">Sign In</Button>
-            </Link>
-            <MovingBorderButton
-              as={Link}
-              href="/signup"
-              borderRadius="9999px"
-              containerClassName="h-8 min-w-[4.75rem] w-auto text-sm"
-              className="min-h-0 h-8 border border-neutral-200/80 bg-white text-neutral-950 shadow-none backdrop-blur-none hover:bg-neutral-100 hover:text-neutral-950 px-3.5 py-0 text-sm font-medium dark:border-neutral-300/50"
-            >
-              Sign Up
-            </MovingBorderButton>
-          </div>
-        )}
+                <DropdownMenuItem onClick={() => signOut(auth)}>Sign Out</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <>
+              <Link href="/login">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-sm h-9 px-4 rounded-full text-muted-foreground hover:text-foreground"
+                >
+                  Sign In
+                </Button>
+              </Link>
+              <Link href="/signup">
+                <Button
+                  size="sm"
+                  className="text-sm h-9 px-5 rounded-full !bg-white !text-black hover:!bg-white/90 !border-0 !shadow-none"
+                >
+                  Sign Up
+                </Button>
+              </Link>
+            </>
+          )}
+        </div>
+
+        {/* Mobile menu toggle */}
+        <button
+          className="md:hidden p-2 text-muted-foreground hover:text-foreground transition-colors"
+          onClick={() => setMobileOpen(!mobileOpen)}
+          aria-label="Toggle menu"
+        >
+          {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+        </button>
       </nav>
+
+      {/* Mobile nav */}
+      {mobileOpen && (
+        <div className="md:hidden border-t border-border/40 bg-background/98 backdrop-blur-xl px-6 py-5 flex flex-col gap-1">
+          {NAV_LINKS.map(({ label, href }) => (
+            <Link
+              key={href}
+              href={href}
+              onClick={() => setMobileOpen(false)}
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors py-2.5 border-b border-border/30 last:border-0"
+            >
+              {label}
+            </Link>
+          ))}
+
+          <div className="flex gap-3 mt-4 pt-2">
+            <Link href="/login" onClick={() => setMobileOpen(false)} className="flex-1">
+              <Button variant="outline" className="w-full rounded-full">
+                Sign In
+              </Button>
+            </Link>
+            <Link href="/signup" onClick={() => setMobileOpen(false)} className="flex-1">
+              <Button className="w-full rounded-full bg-foreground text-background hover:bg-foreground/90">
+                Sign Up
+              </Button>
+            </Link>
+          </div>
+        </div>
+      )}
     </header>
   );
 }

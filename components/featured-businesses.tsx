@@ -58,18 +58,19 @@ export function FeaturedBusinesses() {
   const featured = businesses.slice(0, 7);
 
   return (
-    <section className="py-32 px-4 md:px-8 max-w-7xl mx-auto">
-      <div className="flex justify-between items-end mb-16">
-        <div>
-          <h2 className="text-4xl md:text-6xl font-bold mb-4 text-white">
-            Featured <br />{' '}
-            <span className="text-neutral-500">Businesses</span>
-          </h2>
-        </div>
+    <section className="py-28 px-6 max-w-7xl mx-auto">
+      <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4">
+        Our picks of the moment
+      </p>
+      <div className="flex justify-between items-end mb-20">
+        <h2 className="text-4xl md:text-6xl font-black tracking-tighter leading-[1]">
+          Featured{' '}
+          <span className="text-muted-foreground">Businesses</span>
+        </h2>
         <Button
           asChild
           variant="outline"
-          className="hidden md:flex rounded-full border-neutral-700 hover:bg-neutral-900 hover:text-white group"
+          className="hidden md:flex rounded-full border-border hover:bg-secondary group"
         >
           <Link href="/browse">
             View All{' '}
@@ -132,7 +133,7 @@ export function FeaturedBusinesses() {
         <Button
           asChild
           variant="outline"
-          className="rounded-full border-neutral-700 hover:bg-neutral-900 hover:text-white"
+          className="rounded-full border-border hover:bg-secondary"
         >
           <Link href="/browse">
             View All <ArrowUpRight className="ml-2 w-4 h-4" />

@@ -240,19 +240,27 @@ export default function BrowsePage() {
 
       <Container className="max-w-7xl pt-28 pb-16">
         {/* Page header */}
-        <div className="pt-4 mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-1">
-            Find great spots near you
-          </h1>
-          <p className="text-muted-foreground text-sm">
-            Discover restaurants, shops, services, and entertainment
+        <div className="pt-6 mb-10 border-b border-border/50 pb-10">
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">
+            Local discovery
           </p>
+          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+            <div>
+              <h1 className="text-4xl md:text-5xl font-black tracking-tighter leading-[1] mb-2">
+                Find great spots{' '}
+                <span className="text-muted-foreground">near you</span>
+              </h1>
+              <p className="text-muted-foreground text-sm">
+                Discover restaurants, shops, services, and entertainment
+              </p>
+            </div>
+          </div>
         </div>
 
         {/* Location setup */}
         {!location && (
           <div className="mb-10 max-w-3xl">
-            <p className="text-sm font-medium text-muted-foreground mb-4">
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4">
               Where are you looking?
             </p>
             <LocationDetector onLocationFound={setLocation}>
@@ -281,12 +289,12 @@ export default function BrowsePage() {
           <div className="flex flex-col lg:flex-row gap-8 lg:gap-10 lg:items-start">
 
             {/* Desktop sidebar */}
-            <aside className="hidden lg:block w-60 flex-shrink-0">
+            <aside className="hidden lg:block w-64 flex-shrink-0">
               <div className="sticky top-28">
-                <div className="pb-3 mb-4 border-b border-border">
-                  <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
-                    Filters
-                  </h2>
+                <div className="pb-3 mb-5 border-b border-border/50">
+                  <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                    Refine Results
+                  </p>
                 </div>
                 <BusinessFilters
                   onCategoryChange={setSelectedCategory}
@@ -299,19 +307,19 @@ export default function BrowsePage() {
             {/* Results column */}
             <div className="flex-1 min-w-0">
               {/* Toolbar */}
-              <div className="flex items-center gap-2 flex-wrap mb-5">
+              <div className="flex items-center gap-2 flex-wrap mb-6">
                 {/* Mobile filter trigger */}
                 <Sheet open={mobileFiltersOpen} onOpenChange={setMobileFiltersOpen}>
                   <SheetTrigger asChild>
-                    <button className="lg:hidden flex items-center gap-2 text-sm font-medium px-3 py-2 h-9 rounded-md border border-border hover:border-accent/50 hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
-                      <SlidersHorizontal className="h-4 w-4" />
+                    <button className="lg:hidden flex items-center gap-2 text-sm font-medium px-4 py-2 h-10 rounded-full border border-border hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground">
+                      <SlidersHorizontal className="h-3.5 w-3.5" />
                       Filters
                     </button>
                   </SheetTrigger>
                   <SheetContent side="left" className="w-72 p-0 pt-6">
-                    <SheetHeader className="px-5 pb-4 border-b border-border">
-                      <SheetTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
-                        Filters
+                    <SheetHeader className="px-5 pb-4 border-b border-border/50">
+                      <SheetTitle className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                        Refine Results
                       </SheetTitle>
                     </SheetHeader>
                     <div className="px-5 pt-5 overflow-y-auto">
@@ -331,7 +339,7 @@ export default function BrowsePage() {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Search results…"
-                    className="pl-8 h-9 text-sm"
+                    className="pl-9 h-10 text-sm rounded-full border-border"
                   />
                 </div>
 
@@ -339,7 +347,7 @@ export default function BrowsePage() {
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value as SortOption)}
-                  className="h-9 text-sm px-3 rounded-md border border-border bg-background text-foreground cursor-pointer hover:border-accent/50 transition-colors"
+                  className="h-10 text-sm px-4 rounded-full border border-border bg-background text-foreground cursor-pointer hover:bg-secondary transition-colors"
                 >
                   <option value="distance">Nearest first</option>
                   <option value="rating">Top rated</option>
@@ -349,10 +357,10 @@ export default function BrowsePage() {
                 {/* Open now */}
                 <button
                   onClick={() => setOpenNow(!openNow)}
-                  className={`flex items-center gap-1.5 h-9 px-3 rounded-md text-sm font-medium border transition-all duration-200 ${
+                  className={`flex items-center gap-1.5 h-10 px-4 rounded-full text-sm font-medium border transition-all duration-200 ${
                     openNow
                       ? 'bg-green-500/10 border-green-500/40 text-green-600 dark:text-green-400'
-                      : 'border-border text-muted-foreground hover:text-foreground hover:border-accent/50'
+                      : 'border-border text-muted-foreground hover:text-foreground hover:bg-secondary'
                   }`}
                 >
                   <Clock className="h-3.5 w-3.5" />
@@ -361,14 +369,14 @@ export default function BrowsePage() {
                 </button>
 
                 {/* View toggle */}
-                <div className="hidden sm:flex rounded-md border border-border overflow-hidden shrink-0">
+                <div className="hidden sm:flex rounded-full border border-border overflow-hidden shrink-0">
                   <button
                     onClick={() => setViewMode('list')}
                     title="List view"
-                    className={`px-2.5 py-2 text-sm transition-colors ${
+                    className={`px-3 py-2.5 text-sm transition-colors ${
                       viewMode === 'list'
-                        ? 'bg-accent text-accent-foreground'
-                        : 'text-muted-foreground hover:bg-muted'
+                        ? 'bg-foreground text-background'
+                        : 'text-muted-foreground hover:bg-secondary'
                     }`}
                   >
                     <LayoutList className="h-4 w-4" />
@@ -376,10 +384,10 @@ export default function BrowsePage() {
                   <button
                     onClick={() => setViewMode('split')}
                     title="Map view"
-                    className={`px-2.5 py-2 text-sm border-l border-border transition-colors ${
+                    className={`px-3 py-2.5 text-sm border-l border-border transition-colors ${
                       viewMode === 'split'
-                        ? 'bg-accent text-accent-foreground'
-                        : 'text-muted-foreground hover:bg-muted'
+                        ? 'bg-foreground text-background'
+                        : 'text-muted-foreground hover:bg-secondary'
                     }`}
                   >
                     <Map className="h-4 w-4" />

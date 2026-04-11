@@ -1,65 +1,127 @@
 'use client';
-import Link from "next/link"
-import { motion } from "framer-motion" 
- import { Button } from "@/components/ui/button" 
- import { ArrowRight, MessageCircle, Store } from "lucide-react" 
- 
- export function Footer() { 
-   return ( 
-     <footer className="relative bg-background overflow-hidden">
-      <section className="py-20 border-y border-neutral-900 overflow-hidden bg-black">
+
+import Link from 'next/link';
+import { motion } from 'framer-motion';
+
+const NAV_LINKS = [
+  { label: 'Browse', href: '/browse' },
+  { label: 'Deals', href: '/deals' },
+  { label: 'Resources', href: '/resources' },
+  { label: 'About', href: '/dashboard' },
+  { label: 'Contact', href: '/contact' },
+];
+
+const LEGAL_LINKS = [
+  { label: 'Mentions légales', href: '/legal' },
+  { label: 'Privacy', href: '/privacy' },
+  { label: 'Credits', href: '/credits' },
+];
+
+export function Footer() {
+  return (
+    <footer className="relative bg-background border-t border-border/50 overflow-hidden">
+      {/* Scrolling marquee band */}
+      <section className="py-14 border-b border-border/30 overflow-hidden">
         <div className="flex whitespace-nowrap overflow-hidden">
           <motion.div
-            animate={{ x: ["0%", "-50%"] }}
-            transition={{ repeat: Infinity, duration: 20, ease: "linear" }}
+            animate={{ x: ['0%', '-50%'] }}
+            transition={{ repeat: Infinity, duration: 22, ease: 'linear' }}
             className="flex gap-20 items-center px-10"
           >
             {[...Array(2)].map((_, i) => (
-              <div key={i} className="flex gap-20 text-8xl font-bold text-neutral-900 uppercase tracking-tighter select-none">
+              <div
+                key={i}
+                className="flex gap-20 text-6xl md:text-7xl font-black text-border/40 uppercase tracking-tighter select-none"
+              >
                 <span>Support Local</span>
-                <span className="text-neutral-800">Find Deals</span>
+                <span>Find Deals</span>
                 <span>Community First</span>
-                <span className="text-neutral-800">Grow Together</span>
+                <span>Grow Together</span>
               </div>
             ))}
           </motion.div>
         </div>
       </section>
-      <div className="container mx-auto px-6 lg:px-12 relative z-10 flex flex-col items-center pt-20 pb-96"> 
-         {/* Navigation Links */} 
-         <div className="flex flex-wrap justify-center gap-x-20 gap-y-4 mb-16 text-sm font-bold uppercase tracking-wide"> 
-           <Link href="/browse" className="hover:text-primary transition-colors"> 
-             Browse 
-           </Link> 
-           <Link href="/deals" className="hover:text-primary transition-colors"> 
-             Deals 
-           </Link> 
-           <Link href="/docs" className="hover:text-primary transition-colors"> 
-             Resources 
-           </Link> 
-           <Link href="/help" className="hover:text-primary transition-colors"> 
-             Contact 
-           </Link> 
-         </div> 
- 
-         {/* Legal & Copyright */} 
-         <div className="flex flex-wrap justify-center gap-x-16 gap-y-4 text-xs text-muted-foreground"> 
-           <span>© 2026 Byte-Sized Boost</span> 
-           <Link href="/privacy" className="hover:text-primary transition-colors"> 
-             Privacy Policy 
-           </Link> 
-           <Link href="/terms" className="hover:text-primary transition-colors"> 
-             Terms of Service 
-           </Link> 
-         </div> 
-       </div> 
- 
-       {/* Giant Text Footer */} 
-       <div className="w-full overflow-hidden leading-none select-none pointer-events-none absolute bottom-0 left-0 right-0 flex justify-center translate-y-[35%]"> 
-         <h1 className="text-[35vw] font-black text-foreground tracking-tighter text-center leading-[0.8]"> 
-           BYTE 
-         </h1> 
-       </div> 
-     </footer> 
-   ) 
- } 
+
+      {/* Main footer content */}
+      <div className="max-w-7xl mx-auto px-6 py-20">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-16">
+          {/* Brand column */}
+          <div className="flex flex-col gap-5">
+            <Link href="/" className="font-black text-2xl text-foreground tracking-tight">
+              BOOST
+            </Link>
+            <p className="text-sm text-muted-foreground leading-relaxed max-w-xs">
+              Discover local gems, unlock exclusive deals, and support the heartbeat of your
+              community.
+            </p>
+            <Link
+              href="/contact"
+              className="text-sm font-semibold text-foreground hover:underline underline-offset-4 mt-2 w-fit"
+            >
+              Talk to us →
+            </Link>
+          </div>
+
+          {/* Navigation */}
+          <div className="flex flex-col gap-4">
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">
+              Navigation
+            </p>
+            {NAV_LINKS.map(({ label, href }) => (
+              <Link
+                key={href}
+                href={href}
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {label}
+              </Link>
+            ))}
+          </div>
+
+          {/* Right column */}
+          <div className="flex flex-col gap-4">
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">
+              Explore more
+            </p>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              We&apos;re here to help you find the best your city has to offer. Every week, new
+              local spots, fresh deals, and community stories.
+            </p>
+            <Link
+              href="/browse"
+              className="text-sm font-semibold text-foreground hover:underline underline-offset-4 mt-1 w-fit"
+            >
+              Start exploring →
+            </Link>
+          </div>
+        </div>
+
+        {/* Bottom bar */}
+        <div className="mt-20 pt-8 border-t border-border/40 flex flex-col md:flex-row items-center justify-between gap-4">
+          <p className="text-xs text-muted-foreground">
+            © 2026 Byte-Sized Boost. All rights reserved.
+          </p>
+          <div className="flex items-center gap-6">
+            {LEGAL_LINKS.map(({ label, href }) => (
+              <Link
+                key={href}
+                href={href}
+                className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {label}
+              </Link>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Giant background text */}
+      <div className="w-full overflow-hidden leading-none select-none pointer-events-none flex justify-center">
+        <h2 className="text-[22vw] font-black text-border/15 tracking-tighter text-center leading-[0.85] pb-4">
+          BOOST
+        </h2>
+      </div>
+    </footer>
+  );
+}

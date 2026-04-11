@@ -217,12 +217,16 @@ export default function DashboardPage() {
       <main className="min-h-screen bg-background">
         <Header />
         <Container className="max-w-4xl pt-32 pb-16 text-center">
-          <div className="p-5 rounded-full bg-muted w-fit mx-auto mb-4">
-            <Activity className="h-10 w-10 text-muted-foreground" />
-          </div>
-          <h1 className="text-3xl font-bold mb-3">Your Dashboard</h1>
-          <p className="text-muted-foreground mb-6">Sign in to view your activity, bookmarks, and stats.</p>
-          <Link href="/login" className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-foreground text-background text-sm font-semibold hover:opacity-90 transition-opacity">
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-6">
+            Your account
+          </p>
+          <h1 className="text-4xl md:text-5xl font-black tracking-tighter mb-4">
+            Your Dashboard
+          </h1>
+          <p className="text-muted-foreground mb-8 max-w-sm mx-auto">
+            Sign in to view your activity, bookmarks, and stats.
+          </p>
+          <Link href="/login" className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-foreground text-background text-sm font-semibold hover:bg-foreground/90 transition-colors">
             Sign In
           </Link>
         </Container>
@@ -235,8 +239,18 @@ export default function DashboardPage() {
       <Header />
       <Container className="max-w-6xl pt-28 pb-16">
 
+        {/* Page header */}
+        <div className="pt-6 mb-10 border-b border-border/50 pb-10">
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">
+            Your account
+          </p>
+          <h1 className="text-4xl md:text-5xl font-black tracking-tighter leading-[1]">
+            Dashboard
+          </h1>
+        </div>
+
         {/* Profile banner */}
-        <div className="flex items-center gap-5 mb-10 p-6 rounded-2xl border border-border bg-card">
+        <div className="flex items-center gap-5 mb-10 p-7 rounded-2xl border border-border/60 bg-card">
           <Avatar className="h-16 w-16 shrink-0">
             <AvatarImage src={user?.photoURL || ''} />
             <AvatarFallback className="text-xl font-bold">
@@ -244,9 +258,9 @@ export default function DashboardPage() {
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
-            <h1 className="text-2xl font-bold text-foreground truncate">
+            <h2 className="text-2xl font-black tracking-tight text-foreground truncate">
               {user?.displayName || user?.email?.split('@')[0] || 'Explorer'}
-            </h1>
+            </h2>
             <p className="text-sm text-muted-foreground truncate">{user?.email}</p>
           </div>
           <div className="flex flex-col items-end gap-1 shrink-0">
@@ -268,10 +282,10 @@ export default function DashboardPage() {
           <>
             {/* Stats grid */}
             <section className="mb-10">
-              <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4 flex items-center gap-2">
+              <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-5 flex items-center gap-2">
                 <TrendingUp className="h-3.5 w-3.5" />
                 Your Activity
-              </h2>
+              </p>
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
                 <StatCard
                   icon={CheckCircle2}
@@ -321,10 +335,10 @@ export default function DashboardPage() {
             {/* Place type breakdown */}
             {topTypes.length > 0 && (
               <section className="mb-10">
-                <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4 flex items-center gap-2">
+                <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-5 flex items-center gap-2">
                   <Hash className="h-3.5 w-3.5" />
                   Your Venue Breakdown
-                </h2>
+                </p>
                 <div className="rounded-xl border border-border bg-card p-5">
                   <div className="space-y-3">
                     {topTypes.map(([type, count], idx) => {
@@ -357,10 +371,10 @@ export default function DashboardPage() {
 
             {/* Progress to next level */}
             <section className="mb-10">
-              <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4 flex items-center gap-2">
+              <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-5 flex items-center gap-2">
                 <Award className="h-3.5 w-3.5" />
                 Explorer Progress
-              </h2>
+              </p>
               <div className="rounded-xl border border-border bg-card p-5">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {[
@@ -397,15 +411,15 @@ export default function DashboardPage() {
         )}
 
         {/* Bookmarks section */}
-        <section>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+        <section className="pt-10 border-t border-border/50">
+          <div className="flex items-center justify-between mb-6">
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
               <Bookmark className="h-3.5 w-3.5" />
               Saved Places
               {bookmarkIds.length > 0 && (
                 <span className="ml-1 text-foreground">{bookmarkIds.length}</span>
               )}
-            </h2>
+            </p>
             <Link
               href="/browse"
               className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
@@ -468,15 +482,15 @@ export default function DashboardPage() {
 
         {/* Saved Deals section */}
         {!loading && (
-          <section className="mt-10">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+          <section className="mt-10 pt-10 border-t border-border/50">
+            <div className="flex items-center justify-between mb-6">
+              <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
                 <Heart className="h-3.5 w-3.5" />
                 Saved Deals
                 {savedDeals.length > 0 && (
                   <span className="ml-1 text-foreground">{savedDeals.length}</span>
                 )}
-              </h2>
+              </p>
               <Link
                 href="/deals"
                 className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
