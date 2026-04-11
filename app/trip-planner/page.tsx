@@ -22,8 +22,20 @@ import {
   LocateFixed,
   ArrowDown,
   Milestone,
+  Bike,
+  PersonStanding,
+  TrainFront,
 } from 'lucide-react';
 import { toast } from 'sonner';
+
+type TravelMode = 'DRIVE' | 'WALK' | 'BICYCLE' | 'TRANSIT';
+
+const TRAVEL_MODES: { id: TravelMode; label: string; icon: React.ElementType }[] = [
+  { id: 'DRIVE', label: 'Drive', icon: Car },
+  { id: 'WALK', label: 'Walk', icon: PersonStanding },
+  { id: 'BICYCLE', label: 'Bike', icon: Bike },
+  { id: 'TRANSIT', label: 'Transit', icon: TrainFront },
+];
 
 interface TripStop {
   placeId: string;
@@ -58,6 +70,7 @@ export default function TripPlannerPage() {
   const [locating, setLocating] = useState(false);
   const [optimizing, setOptimizing] = useState(false);
   const [result, setResult] = useState<OptimizedResult | null>(null);
+  const [travelMode, setTravelMode] = useState<TravelMode>('DRIVE');
 
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY;
 
@@ -117,6 +130,11 @@ export default function TripPlannerPage() {
     setResult(null);
   };
 
+  const handleTravelModeChange = (mode: TravelMode) => {
+    setTravelMode(mode);
+    setResult(null);
+  };
+
   const selectedStops = useMemo(() => stops.filter((s) => s.selected), [stops]);
 
   const handleOptimize = async () => {
@@ -133,6 +151,7 @@ export default function TripPlannerPage() {
         body: JSON.stringify({
           origin: userLocation,
           stops: selectedStops.map((s) => ({ lat: s.lat, lng: s.lng, name: s.name })),
+          travelMode,
         }),
       });
 
@@ -224,6 +243,27 @@ export default function TripPlannerPage() {
                   Use My Current Location
                 </Button>
               )}
+            </div>
+
+            {/* Transportation Mode */}
+            <div className="rounded-xl border border-border bg-card p-5">
+              <h3 className="text-sm font-bold text-foreground mb-3">Transportation Mode</h3>
+              <div className="grid grid-cols-4 gap-2">
+                {TRAVEL_MODES.map(({ id, label, icon: Icon }) => (
+                  <button
+                    key={id}
+                    onClick={() => handleTravelModeChange(id)}
+                    className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border transition-all ${
+                      travelMode === id
+                        ? 'border-foreground bg-foreground text-background'
+                        : 'border-border bg-muted/30 text-muted-foreground hover:text-foreground hover:border-border/80'
+                    }`}
+                  >
+                    <Icon className="h-5 w-5" />
+                    <span className="text-xs font-semibold">{label}</span>
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Stops */}
@@ -318,11 +358,11 @@ export default function TripPlannerPage() {
                     </div>
                     <div>
                       <p className="text-2xl font-black text-foreground">{result.totalDurationText}</p>
-                      <p className="text-xs text-muted-foreground">Total drive time</p>
+                      <p className="text-xs text-muted-foreground">Total {travelMode === 'DRIVE' ? 'drive' : travelMode === 'WALK' ? 'walk' : travelMode === 'BICYCLE' ? 'ride' : 'transit'} time</p>
                     </div>
                   </div>
                   <p className="text-xs text-muted-foreground mt-3">
-                    {result.stopCount} stops · Traffic-aware routing
+                    {result.stopCount} stops · {travelMode === 'DRIVE' ? 'Traffic-aware routing' : `${TRAVEL_MODES.find((m) => m.id === travelMode)?.label} route`}
                   </p>
                 </div>
 
@@ -343,7 +383,7 @@ export default function TripPlannerPage() {
                         </div>
                       </div>
                       <div className="ml-3.5 flex items-center gap-2 pl-3 border-l-2 border-dashed border-border py-1.5">
-                        <Car className="h-3 w-3 text-muted-foreground shrink-0" />
+                        {(() => { const ModeIcon = TRAVEL_MODES.find((m) => m.id === travelMode)?.icon ?? Car; return <ModeIcon className="h-3 w-3 text-muted-foreground shrink-0" />; })()}
                         <span className="text-xs text-muted-foreground">
                           {leg.distanceMiles} mi · {leg.durationText}
                         </span>
@@ -366,7 +406,7 @@ export default function TripPlannerPage() {
                 {/* Open in Maps */}
                 <div className="p-4 pt-0">
                   <a
-                    href={buildGoogleMapsUrl(userLocation!, result.optimizedStops)}
+                    href={buildGoogleMapsUrl(userLocation!, result.optimizedStops, travelMode)}
                     target="_blank"
                     rel="noopener noreferrer"
                   >
@@ -385,14 +425,22 @@ export default function TripPlannerPage() {
   );
 }
 
+const GMAPS_MODE: Record<TravelMode, string> = {
+  DRIVE: 'driving',
+  WALK: 'walking',
+  BICYCLE: 'bicycling',
+  TRANSIT: 'transit',
+};
+
 function buildGoogleMapsUrl(
   origin: { lat: number; lng: number },
   stops: TripStop[],
+  travelMode: TravelMode = 'DRIVE',
 ): string {
   const base = 'https://www.google.com/maps/dir/';
   const points = [
     `${origin.lat},${origin.lng}`,
     ...stops.map((s) => encodeURIComponent(s.address || `${s.lat},${s.lng}`)),
   ];
-  return base + points.join('/');
+  return base + points.join('/') + `?travelmode=${GMAPS_MODE[travelMode]}`;
 }

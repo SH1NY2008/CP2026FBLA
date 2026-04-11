@@ -8,7 +8,10 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { origin, stops } = body;
+    const { origin, stops, travelMode: reqTravelMode } = body;
+    const VALID_MODES = ['DRIVE', 'WALK', 'BICYCLE', 'TRANSIT'];
+    const travelMode = VALID_MODES.includes(reqTravelMode) ? reqTravelMode : 'DRIVE';
+    const useTrafficRouting = travelMode === 'DRIVE' || travelMode === 'TRANSIT';
 
     if (!origin || !stops?.length) {
       return NextResponse.json({ error: 'Missing origin or stops' }, { status: 400 });
@@ -39,8 +42,8 @@ export async function POST(request: NextRequest) {
         body: JSON.stringify({
           origins,
           destinations,
-          travelMode: 'DRIVE',
-          routingPreference: 'TRAFFIC_AWARE',
+          travelMode,
+          ...(useTrafficRouting ? { routingPreference: 'TRAFFIC_AWARE' } : {}),
         }),
       },
     );
