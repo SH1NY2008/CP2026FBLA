@@ -20,6 +20,7 @@ import {
   Check,
   Store,
   Percent,
+  ExternalLink,
 } from "lucide-react"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -142,7 +143,7 @@ export function DealCard({ deal, business: providedBusiness, showBusiness = true
             {/* Business Name */}
             {business && showBusiness && (
               <Link
-                href={`/business?id=${business.id}`}
+                href={`/business/${business.id}`}
                 className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-1"
               >
                 <Store className="h-4 w-4" />
@@ -225,10 +226,18 @@ export function DealCard({ deal, business: providedBusiness, showBusiness = true
           />
         </div>
 
-        {/* Promo Code Section */}
+        {/* Promo Code / View Deal Section */}
         {!isExpired && (
           <div className="pt-2">
-            {codeRevealed ? (
+            {deal.sourceUrl && !deal.code ? (
+              // Scraped deal — link out to the source
+              <a href={deal.sourceUrl} target="_blank" rel="noopener noreferrer">
+                <Button className="w-full" variant="outline">
+                  <ExternalLink className="mr-2 h-4 w-4" />
+                  View Deal
+                </Button>
+              </a>
+            ) : codeRevealed ? (
               <div className="flex items-center gap-2">
                 <code className="flex-1 bg-muted px-4 py-2 rounded-md font-mono text-lg text-center">
                   {deal.code}
