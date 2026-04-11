@@ -2,6 +2,7 @@
  import React, { useState } from 'react';
  import { Eye, EyeOff } from 'lucide-react';
  import Link from "next/link";
+ import { ShadowOverlay } from '@/components/ui/shadow-overlay';
  
  // --- HELPER COMPONENTS (ICONS) --- 
  
@@ -38,10 +39,10 @@
  // --- SUB-COMPONENTS --- 
  
  const GlassInputWrapper = ({ children }: { children: React.ReactNode }) => ( 
-   <div className="rounded-2xl border border-border bg-foreground/5 backdrop-blur-sm transition-colors focus-within:border-gray-400/70 focus-within:bg-gray-500/10"> 
-     {children} 
-   </div> 
- ); 
+  <div className="rounded-2xl border border-white/20 bg-white/10 backdrop-blur-sm transition-colors focus-within:border-white/40 focus-within:bg-white/15"> 
+    {children} 
+  </div> 
+);
  
  const TestimonialCard = ({ testimonial, delay }: { testimonial: Testimonial, delay: string }) => ( 
    <div className={`animate-testimonial ${delay} flex items-start gap-3 rounded-3xl bg-card/40 dark:bg-zinc-800/40 backdrop-blur-xl border border-white/10 p-5 w-64`}> 
@@ -70,33 +71,38 @@ export const SignInPage: React.FC<SignInPageProps> = ({
 
   return ( 
     <div className="h-[100dvh] flex flex-col md:flex-row w-[100dvw] relative"> 
-     <Link href="/" className="absolute top-8 left-8 font-black text-xl text-foreground tracking-tight z-10">
+      <ShadowOverlay
+        color="rgba(100, 100, 140, 1)"
+        animation={{ scale: 40, speed: 30 }}
+        noise={{ opacity: 0.4, scale: 1.5 }}
+      />
+     <Link href="/" className="absolute top-8 left-8 font-black text-xl text-white tracking-tight z-20">
        BOOST
      </Link>
       {/* Left column: sign-in form */} 
-      <section className="flex-1 flex items-center justify-center p-8"> 
-        <div className="w-full max-w-md"> 
+      <section className="relative z-10 flex-1 flex items-center justify-center p-8"> 
+        <div className="w-full max-w-md bg-black/40 backdrop-blur-2xl border border-white/10 rounded-3xl p-8 shadow-2xl"> 
           <div className="flex flex-col gap-6"> 
             <div>
-              <h1 className="animate-element animate-delay-100 text-4xl font-bold text-foreground tracking-tight leading-tight">{title}</h1>
-              <p className="animate-element animate-delay-200 text-muted-foreground text-sm mt-2">{description}</p>
+              <h1 className="animate-element animate-delay-100 text-4xl font-bold text-white tracking-tight leading-tight">{title}</h1>
+              <p className="animate-element animate-delay-200 text-white/60 text-sm mt-2">{description}</p>
             </div>
 
             <form className="space-y-5" onSubmit={onSignIn}> 
               <div className="animate-element animate-delay-300"> 
-                <label className="text-sm font-medium text-muted-foreground">Email Address</label> 
+                <label className="text-sm font-medium text-white/70 mb-1 block">Email Address</label> 
                 <GlassInputWrapper> 
-                  <input name="email" type="email" placeholder="Enter your email address" className="w-full bg-transparent text-sm p-4 rounded-2xl focus:outline-none text-foreground placeholder:text-muted-foreground" /> 
+                  <input name="email" type="email" placeholder="Enter your email address" className="w-full bg-transparent text-sm p-4 rounded-2xl focus:outline-none text-white placeholder:text-white/40" /> 
                 </GlassInputWrapper> 
               </div> 
 
               <div className="animate-element animate-delay-400"> 
-                <label className="text-sm font-medium text-muted-foreground">Password</label> 
+                <label className="text-sm font-medium text-white/70 mb-1 block">Password</label> 
                 <GlassInputWrapper> 
                   <div className="relative"> 
-                    <input name="password" type={showPassword ? 'text' : 'password'} placeholder="Enter your password" className="w-full bg-transparent text-sm p-4 pr-12 rounded-2xl focus:outline-none text-foreground placeholder:text-muted-foreground" /> 
+                    <input name="password" type={showPassword ? 'text' : 'password'} placeholder="Enter your password" className="w-full bg-transparent text-sm p-4 pr-12 rounded-2xl focus:outline-none text-white placeholder:text-white/40" /> 
                     <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-3 flex items-center"> 
-                      {showPassword ? <EyeOff className="w-5 h-5 text-muted-foreground hover:text-foreground transition-colors" /> : <Eye className="w-5 h-5 text-muted-foreground hover:text-foreground transition-colors" />} 
+                      {showPassword ? <EyeOff className="w-5 h-5 text-white/50 hover:text-white transition-colors" /> : <Eye className="w-5 h-5 text-white/50 hover:text-white transition-colors" />} 
                     </button> 
                   </div> 
                 </GlassInputWrapper> 
@@ -105,28 +111,28 @@ export const SignInPage: React.FC<SignInPageProps> = ({
               <div className="animate-element animate-delay-500 flex items-center justify-between text-sm"> 
                 <label className="flex items-center gap-3 cursor-pointer"> 
                   <input type="checkbox" name="rememberMe" className="custom-checkbox" /> 
-                  <span className="text-muted-foreground">Keep me signed in</span> 
+                  <span className="text-white/60">Keep me signed in</span> 
                 </label> 
-                <a href="#" onClick={(e) => { e.preventDefault(); onResetPassword?.(); }} className="text-sm text-muted-foreground hover:text-foreground transition-colors">Reset password</a> 
+                <a href="#" onClick={(e) => { e.preventDefault(); onResetPassword?.(); }} className="text-sm text-white/60 hover:text-white transition-colors">Reset password</a> 
               </div> 
 
-              <button type="submit" className="animate-element animate-delay-600 w-full bg-foreground text-background text-sm font-semibold py-3 rounded-2xl hover:bg-foreground/90 transition-all">Sign in</button> 
+              <button type="submit" className="animate-element animate-delay-600 w-full bg-white text-black text-sm font-semibold py-3 rounded-2xl hover:bg-white/90 transition-all">Sign in</button> 
             </form> 
 
-            <div className="animate-element animate-delay-700 flex items-center gap-3 text-xs text-muted-foreground">
-              <div className="flex-1 h-px bg-border" />
+            <div className="animate-element animate-delay-700 flex items-center gap-3 text-xs text-white/40">
+              <div className="flex-1 h-px bg-white/15" />
               Or continue with
-              <div className="flex-1 h-px bg-border" />
+              <div className="flex-1 h-px bg-white/15" />
             </div>
 
-            <button onClick={onGoogleSignIn} className="animate-element animate-delay-800 flex items-center justify-center gap-3 w-full bg-card border border-border text-sm font-medium text-foreground py-3 rounded-2xl hover:bg-muted transition-all"> 
+            <button onClick={onGoogleSignIn} className="animate-element animate-delay-800 flex items-center justify-center gap-3 w-full bg-white/10 border border-white/20 text-sm font-medium text-white py-3 rounded-2xl hover:bg-white/15 transition-all"> 
               <GoogleIcon /> 
               <span>Sign in with Google</span> 
             </button> 
 
             <div className="animate-element animate-delay-900 text-center text-sm"> 
-              <span className="text-muted-foreground">Don't have an account? </span> 
-              <a href="#" onClick={(e) => { e.preventDefault(); onCreateAccount?.(); }} className="text-foreground font-medium hover:underline underline-offset-4 transition-colors">Create a new account</a> 
+              <span className="text-white/50">Don't have an account? </span> 
+              <a href="#" onClick={(e) => { e.preventDefault(); onCreateAccount?.(); }} className="text-white font-medium hover:underline underline-offset-4 transition-colors">Create a new account</a> 
             </div> 
           </div> 
         </div> 
