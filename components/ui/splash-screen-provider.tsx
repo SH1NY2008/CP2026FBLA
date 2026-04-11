@@ -10,7 +10,7 @@ export function SplashScreenProvider({ children }: { children: React.ReactNode }
   useEffect(() => {
     const timer = setTimeout(() => {
       setShowSplash(false);
-    }, 5000); // 5 seconds
+    }, 6000); // 6 seconds — matches 3 words × ~2s each
 
     return () => clearTimeout(timer);
   }, []);
@@ -18,7 +18,11 @@ export function SplashScreenProvider({ children }: { children: React.ReactNode }
   if (showSplash) {
     return (
       <div className="fixed inset-0 bg-black z-50 flex items-center justify-center">
-        <ParticleTextEffect />
+        <ParticleTextEffect
+          words={["HELLO", "READY", "BOOST"]}
+          msPerWord={2000}
+          loopWords={false}
+        />
       </div>
     );
   }

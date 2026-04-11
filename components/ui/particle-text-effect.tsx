@@ -121,17 +121,30 @@ class Particle {
 
 interface ParticleTextEffectProps {
   words?: string[]
+  /** Frames between word transitions (~60fps). Ignored if `msPerWord` is set. */
+  framesPerWord?: number
+  /** Wall-clock ms per word (overrides frame-based timing; stable across refresh rates). */
+  msPerWord?: number
+  /** If false, shows each word once and stops on the last word. */
+  loopWords?: boolean
   className?: string
 }
 
 const DEFAULT_WORDS = ["HELLO", "21st.dev", "ParticleTextEffect", "BY", "KAINXU"]
 
-export function ParticleTextEffect({ words = DEFAULT_WORDS, className }: ParticleTextEffectProps) {
+export function ParticleTextEffect({
+  words = DEFAULT_WORDS,
+  framesPerWord = 240,
+  msPerWord,
+  loopWords = true,
+  className,
+}: ParticleTextEffectProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const animationRef = useRef<number | undefined>(undefined)
   const particlesRef = useRef<Particle[]>([])
   const frameCountRef = useRef(0)
   const wordIndexRef = useRef(0)
+  const wordTimelineStartRef = useRef(0)
   const mouseRef = useRef({ x: 0, y: 0, isPressed: false, isRightClick: false })
 
   const pixelSteps = 6
@@ -265,10 +278,29 @@ export function ParticleTextEffect({ words = DEFAULT_WORDS, className }: Particl
       })
     }
 
-    frameCountRef.current++
-    if (frameCountRef.current % 240 === 0) {
-      wordIndexRef.current = (wordIndexRef.current + 1) % words.length
-      nextWord(words[wordIndexRef.current], canvas)
+    if (msPerWord != null) {
+      const elapsed = performance.now() - wordTimelineStartRef.current
+      let idx: number
+      if (loopWords) {
+        idx = Math.floor(elapsed / msPerWord) % words.length
+      } else {
+        idx = Math.min(Math.floor(elapsed / msPerWord), words.length - 1)
+      }
+      if (idx !== wordIndexRef.current) {
+        wordIndexRef.current = idx
+        nextWord(words[idx], canvas)
+      }
+    } else {
+      frameCountRef.current++
+      if (frameCountRef.current % framesPerWord === 0) {
+        if (loopWords) {
+          wordIndexRef.current = (wordIndexRef.current + 1) % words.length
+          nextWord(words[wordIndexRef.current], canvas)
+        } else if (wordIndexRef.current < words.length - 1) {
+          wordIndexRef.current++
+          nextWord(words[wordIndexRef.current], canvas)
+        }
+      }
     }
 
     animationRef.current = requestAnimationFrame(animate)
@@ -286,6 +318,7 @@ export function ParticleTextEffect({ words = DEFAULT_WORDS, className }: Particl
     }
 
     setCanvasSize()
+    wordTimelineStartRef.current = performance.now()
     nextWord(words[0], canvas)
     animate()
 
