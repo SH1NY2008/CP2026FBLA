@@ -10,10 +10,18 @@ import { cn } from '@/lib/utils';
 
 const BENTO_ICONS = [MapPin, Store, Utensils, Coffee, ShoppingBag, Sparkles, Star] as const;
 
+/** Same image band height for every bento cell (1-col and 2-col wide). */
+const BENTO_IMAGE_HEIGHT = 'h-48 sm:h-52 md:h-56';
+
 function BentoHeader({ photoUrl, name }: { photoUrl?: string | null; name: string }) {
   if (photoUrl) {
     return (
-      <div className="relative w-full shrink-0 overflow-hidden rounded-xl bg-muted aspect-[4/3] md:aspect-[5/4]">
+      <div
+        className={cn(
+          'relative w-full shrink-0 overflow-hidden rounded-xl bg-muted',
+          BENTO_IMAGE_HEIGHT,
+        )}
+      >
         <Image
           src={photoUrl}
           alt={name}
@@ -25,13 +33,23 @@ function BentoHeader({ photoUrl, name }: { photoUrl?: string | null; name: strin
     );
   }
   return (
-    <div className="aspect-[4/3] w-full shrink-0 rounded-xl bg-gradient-to-br from-neutral-200 to-neutral-100 md:aspect-[5/4] dark:from-neutral-900 dark:to-neutral-800" />
+    <div
+      className={cn(
+        'w-full shrink-0 rounded-xl bg-gradient-to-br from-neutral-200 to-neutral-100 dark:from-neutral-900 dark:to-neutral-800',
+        BENTO_IMAGE_HEIGHT,
+      )}
+    />
   );
 }
 
 function BentoSkeleton() {
   return (
-    <div className="aspect-[4/3] w-full shrink-0 animate-pulse rounded-xl bg-gradient-to-br from-neutral-200 to-neutral-100 md:aspect-[5/4] dark:from-neutral-900 dark:to-neutral-800" />
+    <div
+      className={cn(
+        'w-full shrink-0 animate-pulse rounded-xl bg-gradient-to-br from-neutral-200 to-neutral-100 dark:from-neutral-900 dark:to-neutral-800',
+        BENTO_IMAGE_HEIGHT,
+      )}
+    />
   );
 }
 
