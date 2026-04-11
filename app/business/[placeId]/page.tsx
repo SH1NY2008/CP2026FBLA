@@ -17,7 +17,6 @@ import { Button } from '@/components/ui/button';
 import { CommentSection } from '@/components/comment-section';
 import { ReviewForm } from '@/components/review-form';
 import { StarRating } from '@/components/star-rating';
-import { GeminiCard } from '@/components/gemini-card';
 import {
   Dialog,
   DialogContent,
@@ -293,13 +292,6 @@ export default function BusinessDetailsPage() {
                     </div>
                   )}
                 </div>
-
-                {/* Gemini Summary */}
-                {business.types && (
-                  <div className="mb-8">
-                    <GeminiCard amenities={business.types} />
-                  </div>
-                )}
 
                 {/* Business Summary */}
                 {business.summary && (
