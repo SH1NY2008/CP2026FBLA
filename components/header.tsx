@@ -14,52 +14,63 @@ export function Header() {
   const { user } = useAuth();
 
   return (
-    <header className="fixed top-6 left-1/2 -translate-x-1/2 z-50">
-      <nav className="flex items-center gap-6 bg-card/80 border border-border rounded-full px-8 py-4 shadow-lg backdrop-blur-md">
-        <Link href="/" className="font-black text-xl text-foreground tracking-tight">
+    <header className="fixed top-5 left-1/2 -translate-x-1/2 z-50 w-auto max-w-[calc(100vw-2rem)]">
+      <nav className="flex items-center gap-1 sm:gap-2 bg-card/70 border border-border/60 rounded-full px-4 sm:px-6 py-2.5 shadow-2xl shadow-black/20 backdrop-blur-xl">
+        <Link href="/" className="font-black text-lg text-foreground tracking-tight mr-2 sm:mr-4 shrink-0">
           BOOST
         </Link>
-        
-        <Link href="/browse" className="text-muted-foreground hover:text-foreground transition-colors">
-          Browse
-        </Link>
-        <Link href="/deals" className="text-muted-foreground hover:text-foreground transition-colors">
-          Deals
-        </Link>
-        <Link href="/dashboard" className="text-muted-foreground hover:text-foreground transition-colors">
-          Dashboard
-        </Link>
-        
+
+        <div className="hidden sm:flex items-center gap-1">
+          <Link href="/browse" className="text-sm text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5 rounded-full hover:bg-muted/50">
+            Browse
+          </Link>
+          <Link href="/deals" className="text-sm text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5 rounded-full hover:bg-muted/50">
+            Deals
+          </Link>
+          <Link href="/dashboard" className="text-sm text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5 rounded-full hover:bg-muted/50">
+            Dashboard
+          </Link>
+        </div>
+
+        <div className="w-px h-5 bg-border/50 mx-1 sm:mx-2 shrink-0" />
+
         {user ? (
           <DropdownMenu>
-            <DropdownMenuTrigger className="flex items-center gap-2">
-              {user.displayName && <span>{user.displayName}</span>}
-              <Avatar>
+            <DropdownMenuTrigger className="flex items-center gap-2 outline-none">
+              <Avatar className="h-8 w-8">
                 <AvatarImage src={user.photoURL || ''} />
-                <AvatarFallback>{user.email?.[0].toUpperCase()}</AvatarFallback>
+                <AvatarFallback className="text-xs font-semibold">{user.email?.[0].toUpperCase()}</AvatarFallback>
               </Avatar>
             </DropdownMenuTrigger>
-            <DropdownMenuContent>
+            <DropdownMenuContent align="end" className="min-w-[160px]">
+              {user.displayName && (
+                <DropdownMenuItem disabled className="text-xs text-muted-foreground font-medium">
+                  {user.displayName}
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuItem asChild>
+                <Link href="/dashboard">Dashboard</Link>
+              </DropdownMenuItem>
               <DropdownMenuItem onClick={() => signOut(auth)}>
                 Sign Out
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         ) : (
-          <>
+          <div className="flex items-center gap-1.5">
             <Link href="/login">
-              <Button variant="ghost">Sign In</Button>
+              <Button variant="ghost" size="sm" className="text-sm h-8 px-3 rounded-full">Sign In</Button>
             </Link>
             <MovingBorderButton
               as={Link}
               href="/signup"
               borderRadius="9999px"
-              containerClassName="h-9 min-w-[5.75rem] w-auto text-sm"
-              className="min-h-0 h-9 border border-neutral-200/80 bg-white text-neutral-950 shadow-none backdrop-blur-none hover:bg-neutral-100 hover:text-neutral-950 px-4 py-0 text-sm font-medium dark:border-neutral-300/50"
+              containerClassName="h-8 min-w-[4.75rem] w-auto text-sm"
+              className="min-h-0 h-8 border border-neutral-200/80 bg-white text-neutral-950 shadow-none backdrop-blur-none hover:bg-neutral-100 hover:text-neutral-950 px-3.5 py-0 text-sm font-medium dark:border-neutral-300/50"
             >
               Sign Up
             </MovingBorderButton>
-          </>
+          </div>
         )}
       </nav>
     </header>

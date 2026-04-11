@@ -119,8 +119,47 @@
   * {
     @apply border-border outline-ring/50;
   }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
   body {
     @apply bg-background text-foreground;
+    overflow-x: hidden;
+  }
+
+  ::selection {
+    background: rgba(250, 250, 250, 0.15);
+    color: #fafafa;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    text-wrap: balance;
+    letter-spacing: -0.02em;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(250, 250, 250, 0.1);
+    border-radius: 999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(250, 250, 250, 0.2);
   }
 }
 
@@ -128,7 +167,12 @@
   accent-color: #9ca3af;
 }
 
-/* Browse page subtle card glow on hover */
 .browse-theme .group:hover {
   box-shadow: 0 0 0 1px rgba(250, 250, 250, 0.08), 0 8px 24px -4px rgba(0, 0, 0, 0.6);
+}
+
+/* Focus ring polish */
+:focus-visible {
+  outline: 2px solid rgba(250, 250, 250, 0.3);
+  outline-offset: 2px;
 }
