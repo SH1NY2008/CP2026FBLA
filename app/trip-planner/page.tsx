@@ -16,22 +16,29 @@ import Link from 'next/link';
 import {
   Route,
   MapPin,
-  Clock,
   Navigation,
   CheckCircle2,
   Loader2,
-  ChevronRight,
-  Trash2,
   Sparkles,
   Car,
   LocateFixed,
-  ArrowDown,
-  Milestone,
   Bike,
   PersonStanding,
   TrainFront,
+  FileText,
+  Copy,
+  Download,
+  Workflow,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 type TravelMode = 'DRIVE' | 'WALK' | 'BICYCLE' | 'TRANSIT';
 
@@ -50,6 +57,12 @@ interface TripStop {
   lng: number;
   photoUrl?: string | null;
   selected: boolean;
+  /** Google Places types, e.g. restaurant, store */
+  types?: string[];
+  rating?: number;
+  userRatingsTotal?: number;
+  phone?: string;
+  website?: string;
 }
 
 interface OptimizedLeg {
@@ -57,6 +70,17 @@ interface OptimizedLeg {
   to: { lat: number; lng: number; name?: string };
   distanceMiles: number;
   durationText: string;
+  durationSec?: number;
+}
+
+interface RoutePipelineMeta {
+  clientEndpoint: string;
+  upstreamApi: string;
+  optimizationAlgorithm: string;
+  travelMode: string;
+  routingPreference: string;
+  matrixWaypointCount: number;
+  serverProcessingMs: number;
 }
 
 interface OptimizedResult {
@@ -64,7 +88,18 @@ interface OptimizedResult {
   legs: OptimizedLeg[];
   totalDistanceMiles: number;
   totalDurationText: string;
+  totalDurationSec?: number;
   stopCount: number;
+  pipeline?: RoutePipelineMeta;
+  /** Time for the browser to receive a response from our API */
+  clientRequestMs?: number;
+}
+
+interface RouteOptimizeSnapshot {
+  generatedAt: string;
+  origin: { lat: number; lng: number };
+  travelMode: TravelMode;
+  selectedStops: TripStop[];
 }
 
 export default function TripPlannerPage() {
@@ -76,8 +111,15 @@ export default function TripPlannerPage() {
   const [optimizing, setOptimizing] = useState(false);
   const [result, setResult] = useState<OptimizedResult | null>(null);
   const [travelMode, setTravelMode] = useState<TravelMode>('DRIVE');
+  const [reportOpen, setReportOpen] = useState(false);
+  /** Captured when a route is optimized so the report matches that run even if selections change later */
+  const [reportSnapshot, setReportSnapshot] = useState<RouteOptimizeSnapshot | null>(null);
 
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY;
+
+  useEffect(() => {
+    if (!result || !reportSnapshot) setReportOpen(false);
+  }, [result, reportSnapshot]);
 
   useEffect(() => {
     if (!user) { setLoading(false); return; }
@@ -104,6 +146,11 @@ export default function TripPlannerPage() {
                   ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=200&photoreference=${r.photos[0].photo_reference}&key=${apiKey}`
                   : null,
                 selected: true,
+                types: Array.isArray(r.types) ? r.types : undefined,
+                rating: typeof r.rating === 'number' ? r.rating : undefined,
+                userRatingsTotal: typeof r.user_ratings_total === 'number' ? r.user_ratings_total : undefined,
+                phone: r.formatted_phone_number ?? undefined,
+                website: r.website ?? undefined,
               } as TripStop;
             } catch { return null; }
           }),
@@ -133,11 +180,13 @@ export default function TripPlannerPage() {
   const toggleStop = (placeId: string) => {
     setStops((prev) => prev.map((s) => (s.placeId === placeId ? { ...s, selected: !s.selected } : s)));
     setResult(null);
+    setReportSnapshot(null);
   };
 
   const handleTravelModeChange = (mode: TravelMode) => {
     setTravelMode(mode);
     setResult(null);
+    setReportSnapshot(null);
   };
 
   const selectedStops = useMemo(() => stops.filter((s) => s.selected), [stops]);
@@ -148,8 +197,10 @@ export default function TripPlannerPage() {
 
     setOptimizing(true);
     setResult(null);
+    setReportSnapshot(null);
 
     try {
+      const reqStart = performance.now();
       const res = await fetch('/api/route-optimize', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -159,6 +210,7 @@ export default function TripPlannerPage() {
           travelMode,
         }),
       });
+      const clientRequestMs = Math.round(performance.now() - reqStart);
 
       if (!res.ok) throw new Error('Optimization failed');
 
@@ -166,6 +218,7 @@ export default function TripPlannerPage() {
 
       const optimizedWithNames = {
         ...data,
+        clientRequestMs,
         optimizedStops: data.optimizedStops.map((s: { originalIndex: number }) => ({
           ...selectedStops[s.originalIndex],
           ...s,
@@ -178,6 +231,12 @@ export default function TripPlannerPage() {
       };
 
       setResult(optimizedWithNames);
+      setReportSnapshot({
+        generatedAt: new Date().toISOString(),
+        origin: { ...userLocation },
+        travelMode,
+        selectedStops: selectedStops.map((s) => ({ ...s })),
+      });
       toast.success('Route optimized!');
     } catch {
       toast.error('Failed to optimize route');
@@ -408,9 +467,10 @@ export default function TripPlannerPage() {
                   </div>
                 </div>
 
-                {/* Open in Maps */}
-                <div className="p-4 pt-0">
+                {/* Open in Maps + report */}
+                <div className="p-4 pt-0 flex flex-col gap-4">
                   <a
+                    className="block w-full"
                     href={buildGoogleMapsUrl(userLocation!, result.optimizedStops, travelMode)}
                     target="_blank"
                     rel="noopener noreferrer"
@@ -420,14 +480,329 @@ export default function TripPlannerPage() {
                       Open in Google Maps
                     </Button>
                   </a>
+                  {reportSnapshot && (
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      className="w-full gap-2"
+                      onClick={() => setReportOpen(true)}
+                    >
+                      <FileText className="h-4 w-4" />
+                      Generate trip report
+                    </Button>
+                  )}
                 </div>
               </div>
             )}
           </div>
         </div>
       </Container>
+
+      {result && reportSnapshot && user && (
+        <TripReportDialog
+          open={reportOpen}
+          onOpenChange={setReportOpen}
+          user={user}
+          result={result}
+          snapshot={reportSnapshot}
+        />
+      )}
     </main>
   );
+}
+
+function TripReportDialog({
+  open,
+  onOpenChange,
+  user,
+  result,
+  snapshot,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  user: NonNullable<ReturnType<typeof useAuth>['user']>;
+  result: OptimizedResult;
+  snapshot: RouteOptimizeSnapshot;
+}) {
+  const markdown = useMemo(() => {
+    const label = user.email ?? `Firebase uid …${user.uid.slice(-8)}`;
+    return buildTripReportMarkdown({ userLabel: label, result, snapshot });
+  }, [result, snapshot, user]);
+
+  const copyReport = async () => {
+    if (!markdown) return;
+    try {
+      await navigator.clipboard.writeText(markdown);
+      toast.success('Report copied to clipboard');
+    } catch {
+      toast.error('Could not copy');
+    }
+  };
+
+  const downloadReport = () => {
+    if (!markdown || !snapshot) return;
+    const blob = new Blob([markdown], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `trip-planner-report-${snapshot.generatedAt.slice(0, 10)}.md`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success('Report downloaded');
+  };
+
+  const modeLabel = TRAVEL_MODES.find((m) => m.id === snapshot.travelMode)?.label ?? snapshot.travelMode;
+  const p = result.pipeline;
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] flex flex-col gap-0 overflow-hidden p-0">
+        <DialogHeader className="px-6 pt-6 pb-2 shrink-0 border-b border-border">
+          <DialogTitle className="flex items-center gap-2">
+            <FileText className="h-5 w-5" />
+            Trip run report
+          </DialogTitle>
+          <DialogDescription>
+            End-to-end view: your inputs, how the app routed the request, and the itinerary returned.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="overflow-y-auto px-6 py-4 space-y-6 text-sm">
+          <section>
+            <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-2">
+              <MapPin className="h-3.5 w-3.5" />
+              1 · User input
+            </h4>
+            <div className="rounded-lg border border-border bg-muted/20 p-4 space-y-2">
+              <p>
+                <span className="text-muted-foreground">Session:</span>{' '}
+                {user.email ?? `…${user.uid.slice(-8)}`}
+              </p>
+              <p>
+                <span className="text-muted-foreground">Generated:</span>{' '}
+                {new Date(snapshot.generatedAt).toLocaleString()}
+              </p>
+              <p>
+                <span className="text-muted-foreground">Starting point:</span>{' '}
+                {snapshot.origin.lat.toFixed(5)}, {snapshot.origin.lng.toFixed(5)}
+              </p>
+              <p>
+                <span className="text-muted-foreground">Travel mode:</span> {modeLabel}
+              </p>
+              <p className="text-muted-foreground pt-1">Selected stops (bookmark metadata from Google Places)</p>
+              <ul className="list-none space-y-2 mt-2">
+                {snapshot.selectedStops.map((s) => (
+                  <li
+                    key={s.placeId}
+                    className="rounded-md border border-border/80 bg-background px-3 py-2 text-xs"
+                  >
+                    <p className="font-semibold text-foreground">{s.name}</p>
+                    <p className="text-muted-foreground">{s.address}</p>
+                    <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground">
+                      <span>place_id: {s.placeId}</span>
+                      {s.types?.length ? <span>types: {formatPlaceTypes(s.types)}</span> : null}
+                      {s.rating != null ? (
+                        <span>
+                          rating: {s.rating}
+                          {s.userRatingsTotal != null ? ` (${s.userRatingsTotal} reviews)` : ''}
+                        </span>
+                      ) : null}
+                      {s.phone ? <span>phone: {s.phone}</span> : null}
+                      {s.website ? <span>website: {s.website}</span> : null}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </section>
+
+          <section>
+            <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-2">
+              <Workflow className="h-3.5 w-3.5" />
+              2 · Processing and API routing
+            </h4>
+            <div className="rounded-lg border border-border bg-muted/20 p-4 space-y-2 font-mono text-xs">
+              {p ? (
+                <>
+                  <p>
+                    <span className="text-muted-foreground font-sans">App:</span> {p.clientEndpoint}
+                  </p>
+                  <p>
+                    <span className="text-muted-foreground font-sans">Client round-trip:</span>{' '}
+                    {result.clientRequestMs != null ? `${result.clientRequestMs} ms` : '—'}
+                  </p>
+                  <p>
+                    <span className="text-muted-foreground font-sans">Server processing:</span> {p.serverProcessingMs} ms
+                  </p>
+                  <p>
+                    <span className="text-muted-foreground font-sans">Upstream:</span> {p.upstreamApi}
+                  </p>
+                  <p>
+                    <span className="text-muted-foreground font-sans">Matrix waypoints:</span> {p.matrixWaypointCount}{' '}
+                    (origin + stops)
+                  </p>
+                  <p>
+                    <span className="text-muted-foreground font-sans">Routing preference:</span> {p.routingPreference}
+                  </p>
+                  <p>
+                    <span className="text-muted-foreground font-sans">Optimization:</span> {p.optimizationAlgorithm}
+                  </p>
+                </>
+              ) : (
+                <p className="text-muted-foreground font-sans text-xs">
+                  Pipeline metadata was not returned (older server response). Re-run optimize to capture full routing details.
+                </p>
+              )}
+            </div>
+          </section>
+
+          <section>
+            <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-2">
+              <Route className="h-3.5 w-3.5" />
+              3 · Itinerary output
+            </h4>
+            <div className="rounded-lg border border-border bg-muted/20 p-4 space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <p className="text-2xl font-black">{result.totalDistanceMiles} mi</p>
+                  <p className="text-xs text-muted-foreground">Total distance</p>
+                </div>
+                <div>
+                  <p className="text-2xl font-black">{result.totalDurationText}</p>
+                  <p className="text-xs text-muted-foreground">
+                    Total trip time
+                    {result.totalDurationSec != null ? ` (${result.totalDurationSec} sec)` : ''}
+                  </p>
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground">{result.stopCount} stops in visit order</p>
+              <ol className="list-decimal list-inside space-y-1 text-xs">
+                <li>Your location (origin)</li>
+                {result.optimizedStops.map((s) => (
+                  <li key={s.placeId}>{s.name}</li>
+                ))}
+              </ol>
+              <p className="text-xs font-semibold text-muted-foreground pt-2">Legs</p>
+              <ul className="space-y-1.5 text-xs font-mono">
+                {result.legs.map((leg, i) => (
+                  <li key={i} className="border-l-2 border-dashed border-border pl-2">
+                    {leg.from.name ?? 'A'} → {leg.to.name ?? 'B'} · {leg.distanceMiles} mi · {leg.durationText}
+                    {leg.durationSec != null ? ` (${leg.durationSec}s)` : ''}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </section>
+        </div>
+
+        <DialogFooter className="px-6 py-4 border-t border-border bg-muted/10 shrink-0 gap-2 sm:justify-between">
+          <Button type="button" variant="outline" size="sm" onClick={() => onOpenChange(false)}>
+            Close
+          </Button>
+          <div className="flex gap-2">
+            <Button type="button" variant="outline" size="sm" className="gap-1.5" onClick={copyReport} disabled={!markdown}>
+              <Copy className="h-3.5 w-3.5" />
+              Copy Markdown
+            </Button>
+            <Button type="button" size="sm" className="gap-1.5" onClick={downloadReport} disabled={!markdown}>
+              <Download className="h-3.5 w-3.5" />
+              Download .md
+            </Button>
+          </div>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function formatPlaceTypes(types: string[]): string {
+  return types
+    .filter((t) => !t.startsWith('point_of_interest'))
+    .slice(0, 6)
+    .join(', ');
+}
+
+function buildTripReportMarkdown(args: {
+  userLabel: string;
+  result: OptimizedResult;
+  snapshot: RouteOptimizeSnapshot;
+}): string {
+  const { userLabel, result, snapshot } = args;
+  const modeLabel = TRAVEL_MODES.find((m) => m.id === snapshot.travelMode)?.label ?? snapshot.travelMode;
+  const p = result.pipeline;
+  const lines: string[] = [
+    '# Trip Planner — run report',
+    '',
+    `- **Generated:** ${snapshot.generatedAt}`,
+    `- **User:** ${userLabel}`,
+    '',
+    '## 1. User input',
+    '',
+    `- **Starting point:** ${snapshot.origin.lat}, ${snapshot.origin.lng}`,
+    `- **Travel mode:** ${modeLabel}`,
+    `- **Stops selected:** ${snapshot.selectedStops.length}`,
+    '',
+    '### Bookmarked places (Places metadata)',
+    '',
+  ];
+
+  for (const s of snapshot.selectedStops) {
+    lines.push(`- **${s.name}** (${s.placeId})`);
+    lines.push(`  - Address: ${s.address}`);
+    if (s.types?.length) lines.push(`  - Types: ${formatPlaceTypes(s.types)}`);
+    if (s.rating != null) {
+      lines.push(
+        `  - Rating: ${s.rating}${s.userRatingsTotal != null ? ` (${s.userRatingsTotal} reviews)` : ''}`,
+      );
+    }
+    if (s.phone) lines.push(`  - Phone: ${s.phone}`);
+    if (s.website) lines.push(`  - Website: ${s.website}`);
+    lines.push('');
+  }
+
+  lines.push('## 2. Processing & API routing', '');
+  if (p) {
+    lines.push(
+      `- **App endpoint:** \`${p.clientEndpoint}\``,
+      `- **Client round-trip:** ${result.clientRequestMs != null ? `${result.clientRequestMs} ms` : '—'}`,
+      `- **Server processing:** ${p.serverProcessingMs} ms`,
+      `- **Upstream:** ${p.upstreamApi}`,
+      `- **Matrix waypoints:** ${p.matrixWaypointCount}`,
+      `- **Routing preference:** ${p.routingPreference}`,
+      `- **Optimization:** ${p.optimizationAlgorithm}`,
+      '',
+    );
+  } else {
+    lines.push('_(Pipeline metadata not present — re-run route optimization.)_', '', '');
+  }
+
+  lines.push(
+    '## 3. Itinerary output',
+    '',
+    `- **Total distance:** ${result.totalDistanceMiles} mi`,
+    `- **Total trip time:** ${result.totalDurationText}${
+      result.totalDurationSec != null ? ` (${result.totalDurationSec} sec)` : ''
+    }`,
+    `- **Stop count:** ${result.stopCount}`,
+    '',
+    '### Visit order',
+    '',
+    '1. Origin (your location)',
+  );
+  let n = 2;
+  for (const s of result.optimizedStops) {
+    lines.push(`${n}. ${s.name}`);
+    n += 1;
+  }
+  lines.push('', '### Legs', '');
+  result.legs.forEach((leg, i) => {
+    const extra = leg.durationSec != null ? ` (${leg.durationSec}s)` : '';
+    lines.push(
+      `${i + 1}. ${leg.from.name ?? '—'} → ${leg.to.name ?? '—'} — ${leg.distanceMiles} mi, ${leg.durationText}${extra}`,
+    );
+  });
+  lines.push('');
+  return lines.join('\n');
 }
 
 const GMAPS_MODE: Record<TravelMode, string> = {

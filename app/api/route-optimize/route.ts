@@ -6,6 +6,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'API key not configured' }, { status: 500 });
   }
 
+  const startedAt = Date.now();
   try {
     const body = await request.json();
     const { origin, stops, travelMode: reqTravelMode } = body;
@@ -114,6 +115,8 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    const serverProcessingMs = Date.now() - startedAt;
+
     return NextResponse.json({
       optimizedStops,
       legs,
@@ -121,6 +124,16 @@ export async function POST(request: NextRequest) {
       totalDurationSec: totalDuration,
       totalDurationText: formatDuration(totalDuration),
       stopCount: stops.length,
+      pipeline: {
+        clientEndpoint: 'POST /api/route-optimize',
+        upstreamApi: 'Google Routes API v2 — distanceMatrix:computeRouteMatrix',
+        optimizationAlgorithm:
+          'Nearest-neighbor greedy ordering from fixed origin (single pass)',
+        travelMode,
+        routingPreference: useTrafficRouting ? 'TRAFFIC_AWARE' : 'DEFAULT',
+        matrixWaypointCount: n,
+        serverProcessingMs,
+      },
     });
   } catch (error) {
     console.error('Route optimize error:', error);
