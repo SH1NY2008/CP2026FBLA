@@ -7,7 +7,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '@/firebase';
 import { COLLECTIONS, placeDataDoc } from '@/lib/firestore/schema';
-import type { PlaceAnalytics } from './types';
+import type { PlaceAnalytics } from '@/domain/business-portal/types';
 
 export async function getPlaceAnalytics(placeId: string): Promise<PlaceAnalytics> {
   const [checkinSnap, bookmarkSnap, ratingsSnap, commentsSnap, photosSnap] = await Promise.all([

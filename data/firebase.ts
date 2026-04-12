@@ -26,7 +26,7 @@ const app = initializeApp(firebaseConfig);
 const analytics = typeof window !== 'undefined' ? getAnalytics(app) : null;
 
 export const auth = getAuth(app);
-/** Firestore instance — collection names and document shapes live in `lib/firestore/schema.ts`. */
+/** Firestore instance — collection names and document shapes live in `data/firestore/schema.ts`. */
 export const db = getFirestore(app);
 export const storage = getStorage(app);
 export const googleProvider = new GoogleAuthProvider();

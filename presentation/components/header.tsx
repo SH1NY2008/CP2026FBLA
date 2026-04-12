@@ -3,8 +3,8 @@
 /* Global top bar: same on every page — nav links, auth dropdown or sign-in, mobile sheet. */
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { useAuth } from '../hooks/useAuth';
-import { auth } from '../firebase';
+import { useAuth } from '@/hooks/useAuth';
+import { auth } from '@/firebase';
 import { signOut } from 'firebase/auth';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {

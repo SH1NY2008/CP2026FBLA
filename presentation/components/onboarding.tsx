@@ -27,7 +27,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { useApp } from "@/lib/context"
+import { useApp } from "@/presentation/context/app-context"
 import { cn } from "@/lib/utils"
 
 /**

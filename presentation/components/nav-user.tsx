@@ -29,7 +29,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
-import { useAuth } from "@/lib/auth-context"
+import { useAuth } from "@/hooks/useAuth"
 import { Button } from "@/components/ui/button"
 
 export function NavUser() {

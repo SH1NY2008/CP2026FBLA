@@ -23,9 +23,23 @@
       }
     ],
     "paths": {
-      "@/*": [
-        "./*"
-      ]
+      "@/*": ["./*"],
+      "@/components/*": ["./presentation/components/*"],
+      "@/hooks/*": ["./presentation/hooks/*"],
+      "@/presentation/*": ["./presentation/*"],
+      "@/firebase": ["./data/firebase.ts"],
+      "@/lib/utils": ["./presentation/lib/utils.ts"],
+      "@/lib/validation": ["./domain/validation.ts"],
+      "@/lib/voice-routes": ["./domain/voice-routes.ts"],
+      "@/lib/help-qa-data": ["./domain/help-qa-data.ts"],
+      "@/lib/countries-data": ["./domain/countries-data.ts"],
+      "@/lib/deals-data": ["./domain/deals-data.ts"],
+      "@/lib/data": ["./domain/reviews-stub.ts"],
+      "@/lib/schemas/*": ["./domain/schemas/*"],
+      "@/lib/firestore/*": ["./data/firestore/*"],
+      "@/lib/business-portal": ["./data/business-portal/index.ts"],
+      "@/lib/places": ["./data/places/index.ts"],
+      "@/lib/server/*": ["./data/server/*"]
     }
   },
   "include": [

@@ -11,7 +11,7 @@ import {
 import { db } from '@/firebase';
 import { COLLECTIONS } from '@/lib/firestore/schema';
 import { compareCreatedAtDesc } from './firestore-ordering';
-import type { BusinessInquiry } from './types';
+import type { BusinessInquiry } from '@/domain/business-portal/types';
 
 export async function sendInquiry(
   inq: Omit<BusinessInquiry, 'id' | 'createdAt' | 'read'>,

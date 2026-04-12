@@ -12,7 +12,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '@/firebase';
 import { COLLECTIONS } from '@/lib/firestore/schema';
-import type { BusinessEvent } from './types';
+import type { BusinessEvent } from '@/domain/business-portal/types';
 
 export async function createEvent(
   evt: Omit<BusinessEvent, 'id' | 'createdAt' | 'rsvpCount' | 'rsvpUserIds'>,

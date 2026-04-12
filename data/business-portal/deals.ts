@@ -12,7 +12,7 @@ import {
 import { db } from '@/firebase';
 import { COLLECTIONS } from '@/lib/firestore/schema';
 import { compareCreatedAtDesc } from './firestore-ordering';
-import type { BusinessDeal } from './types';
+import type { BusinessDeal } from '@/domain/business-portal/types';
 
 export async function createDeal(
   deal: Omit<BusinessDeal, 'id' | 'createdAt'>,

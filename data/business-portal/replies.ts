@@ -8,7 +8,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '@/firebase';
 import { COLLECTIONS } from '@/lib/firestore/schema';
-import type { OwnerReply } from './types';
+import type { OwnerReply } from '@/domain/business-portal/types';
 
 export async function createOwnerReply(
   reply: Omit<OwnerReply, 'id' | 'createdAt'>,

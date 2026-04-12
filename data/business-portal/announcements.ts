@@ -11,7 +11,7 @@ import {
 import { db } from '@/firebase';
 import { COLLECTIONS } from '@/lib/firestore/schema';
 import { compareCreatedAtDesc } from './firestore-ordering';
-import type { BusinessAnnouncement } from './types';
+import type { BusinessAnnouncement } from '@/domain/business-portal/types';
 
 export async function createAnnouncement(
   ann: Omit<BusinessAnnouncement, 'id' | 'createdAt'>,

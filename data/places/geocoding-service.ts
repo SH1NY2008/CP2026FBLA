@@ -1,6 +1,6 @@
 import { parseLocalityAndCountry } from './address-parsing';
 import { fetchMapsApiJson } from './google-maps-http';
-import type { GeocodeSuccess, ReverseGeocodeSuccess } from './types';
+import type { GeocodeSuccess, ReverseGeocodeSuccess } from '@/domain/places/types';
 
 interface GeocodeResponse {
   status: string;

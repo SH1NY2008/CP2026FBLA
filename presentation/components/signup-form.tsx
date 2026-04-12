@@ -12,7 +12,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { useState } from "react";
 import { createUserWithEmailAndPassword, signInWithPopup } from "firebase/auth";
-import { auth, googleProvider } from "../firebase";
+import { auth, googleProvider } from "@/firebase";
 import { useRouter } from "next/navigation";
 import { validateEmailSyntax, validatePasswordSignup } from "@/lib/validation";
 

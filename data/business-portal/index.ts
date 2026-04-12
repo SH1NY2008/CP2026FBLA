@@ -14,9 +14,9 @@ export type {
   OwnerReply,
   BusinessInquiry,
   PlaceAnalytics,
-} from './types';
+} from '@/domain/business-portal/types';
 
-export { WEEK_DAYS, DEFAULT_HOURS, DEAL_CATEGORIES } from './constants';
+export { WEEK_DAYS, DEFAULT_HOURS, DEAL_CATEGORIES } from '@/domain/business-portal/constants';
 
 export {
   claimBusiness,

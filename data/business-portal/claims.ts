@@ -10,7 +10,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '@/firebase';
 import { COLLECTIONS, placeDataDoc } from '@/lib/firestore/schema';
-import type { ClaimedBusiness } from './types';
+import type { ClaimedBusiness } from '@/domain/business-portal/types';
 
 export async function claimBusiness(
   placeId: string,

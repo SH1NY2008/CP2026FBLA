@@ -1,4 +1,4 @@
-import type { NearbyPlaceResult } from './types';
+import type { NearbyPlaceResult } from '@/domain/places/types';
 
 export interface NearbySearchResponse {
   results?: NearbySearchApiPlace[];
