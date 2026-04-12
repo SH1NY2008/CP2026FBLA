@@ -1,5 +1,5 @@
 /**
- * Firestore layout for this app — single place to see how data is keyed and nested.
+ * 
  *
  * Design choices (good for demos / rubrics):
  * - User-private lists (bookmarks, saved deal ids) live in one doc per uid so reads are O(1).
