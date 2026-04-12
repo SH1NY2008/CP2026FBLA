@@ -36,6 +36,7 @@ export function Header() {
         {/* Logo */}
         <Link
           href="/"
+          data-tour="tour-logo"
           className="font-black text-xl text-foreground tracking-tight shrink-0 z-10"
         >
           BOOST
@@ -43,7 +44,10 @@ export function Header() {
 
         {/* Desktop nav — centered in the bar; logo left, actions right */}
         <div className="pointer-events-none absolute inset-x-0 top-1/2 hidden -translate-y-1/2 md:flex md:justify-center">
-          <div className="pointer-events-auto flex items-center gap-0.5 lg:gap-1">
+          <div
+            data-tour="tour-main-nav"
+            className="pointer-events-auto flex items-center gap-0.5 lg:gap-1"
+          >
             {NAV_LINKS.map(({ label, href }) => (
               <Link
                 key={href}
@@ -60,6 +64,8 @@ export function Header() {
           {/* Interactive Q&A from any page; /help has the full layout */}
           <HelpQADialog />
 
+          {/* Desktop auth + mobile menu — one spotlight for “your account” on all breakpoints */}
+          <div data-tour="tour-account" className="flex items-center gap-1 sm:gap-2">
           {/* Desktop auth */}
           <div className="hidden md:flex items-center justify-end gap-3">
           {user ? (
@@ -118,12 +124,14 @@ export function Header() {
 
           {/* Mobile menu toggle */}
           <button
+            data-tour="tour-mobile-menu"
             className="md:hidden p-2 text-muted-foreground hover:text-foreground transition-colors"
             onClick={() => setMobileOpen(!mobileOpen)}
             aria-label="Toggle menu"
           >
             {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
+          </div>
         </div>
       </nav>
 

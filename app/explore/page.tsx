@@ -182,7 +182,7 @@ export default function ExplorePage() {
         </div>
 
         {/* Location toggle */}
-        <div className="flex justify-center mb-6">
+        <div className="flex justify-center mb-6" data-tour="explore-locate">
           {userLocation ? (
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <div className="h-2 w-2 rounded-full bg-emerald-400" />
@@ -207,7 +207,7 @@ export default function ExplorePage() {
         </div>
 
         {/* Search bar */}
-        <div className="relative mb-8">
+        <div className="relative mb-8" data-tour="explore-search">
           <div className="flex gap-2">
             <div className="relative flex-1">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none" />
@@ -237,7 +237,7 @@ export default function ExplorePage() {
 
         {/* Suggested queries */}
         {!result && !loading && (
-          <div className="mb-12">
+          <div className="mb-12" data-tour="explore-suggestions">
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-4 text-center">
               Try asking
             </p>

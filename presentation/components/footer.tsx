@@ -67,7 +67,7 @@ export function Footer() {
           </div>
 
           {/* Navigation */}
-          <div className="flex flex-col gap-4">
+          <div data-tour="tour-footer-nav" className="flex flex-col gap-4">
             <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">
               Navigation
             </p>

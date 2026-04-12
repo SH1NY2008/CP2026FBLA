@@ -69,7 +69,7 @@ export default function AccessibilityPage() {
           </p>
         </div>
 
-        <Card>
+        <Card data-tour="a11y-voice">
           <CardHeader>
             <CardTitle>Voice navigation</CardTitle>
             <CardDescription>
@@ -92,7 +92,7 @@ export default function AccessibilityPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card data-tour="a11y-display">
           <CardHeader>
             <CardTitle>Display</CardTitle>
             <CardDescription>
@@ -194,7 +194,7 @@ export default function AccessibilityPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card data-tour="a11y-read-aloud">
           <CardHeader>
             <CardTitle>Read this page aloud</CardTitle>
             <CardDescription>

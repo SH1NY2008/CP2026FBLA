@@ -20,6 +20,7 @@ export function HelpQADialog() {
           type="button"
           variant="ghost"
           size="sm"
+          data-tour="tour-help"
           className="rounded-full text-muted-foreground hover:text-foreground gap-1.5"
           aria-label="Open help and Q&A"
         >

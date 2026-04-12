@@ -270,7 +270,7 @@ export default function BrowsePage() {
 
         {/* Location setup */}
         {!location && (
-          <div className="mb-10 max-w-3xl">
+          <div className="mb-10 max-w-3xl" data-tour="browse-location-pick">
             <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4">
               Where are you looking?
             </p>
@@ -281,7 +281,7 @@ export default function BrowsePage() {
         )}
 
         {location && (
-          <div className="mb-8 flex items-center gap-3 flex-wrap">
+          <div className="mb-8 flex items-center gap-3 flex-wrap" data-tour="browse-location-set">
             <LocationTag
               city={location.city}
               country={location.country}
@@ -300,7 +300,7 @@ export default function BrowsePage() {
           <div className="flex flex-col lg:flex-row gap-8 lg:gap-10 lg:items-start">
 
             {/* Desktop sidebar */}
-            <aside className="hidden lg:block w-64 flex-shrink-0">
+            <aside className="hidden lg:block w-64 flex-shrink-0" data-tour="browse-filters-desktop">
               <div className="sticky top-28">
                 <div className="pb-3 mb-5 border-b border-border/50">
                   <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
@@ -333,11 +333,15 @@ export default function BrowsePage() {
             {/* Results column */}
             <div className="flex-1 min-w-0">
               {/* Toolbar */}
-              <div className="flex items-center gap-2 flex-wrap mb-6">
+              <div className="flex items-center gap-2 flex-wrap mb-6" data-tour="browse-toolbar">
                 {/* Mobile filter trigger */}
                 <Sheet open={mobileFiltersOpen} onOpenChange={setMobileFiltersOpen}>
                   <SheetTrigger asChild>
-                    <button className="lg:hidden flex items-center gap-2 text-sm font-medium px-4 py-2 h-10 rounded-full border border-border hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground">
+                    <button
+                      type="button"
+                      data-tour="browse-filters-mobile"
+                      className="lg:hidden flex items-center gap-2 text-sm font-medium px-4 py-2 h-10 rounded-full border border-border hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground"
+                    >
                       <SlidersHorizontal className="h-3.5 w-3.5" />
                       Filters
                     </button>
@@ -395,7 +399,10 @@ export default function BrowsePage() {
                 </button>
 
                 {/* View toggle */}
-                <div className="hidden sm:flex rounded-full border border-border overflow-hidden shrink-0">
+                <div
+                  className="hidden sm:flex rounded-full border border-border overflow-hidden shrink-0"
+                  data-tour="browse-view-toggle"
+                >
                   <button
                     onClick={() => setViewMode('list')}
                     title="List view"

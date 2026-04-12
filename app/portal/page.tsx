@@ -179,7 +179,7 @@ export default function PortalPage() {
     return (
       <main className="min-h-screen bg-background">
         <Header />
-        <Container className="max-w-4xl pt-32 pb-16 text-center">
+        <Container className="max-w-4xl pt-32 pb-16 text-center" data-tour="portal-guest">
           <div className="p-4 rounded-full bg-muted inline-flex mb-6">
             <Building2 className="h-8 w-8 text-muted-foreground" />
           </div>
@@ -382,7 +382,7 @@ export default function PortalPage() {
       <Header />
       <Container className="max-w-6xl pt-28 pb-16">
         {/* Header */}
-        <div className="pt-6 mb-10 border-b border-border/50 pb-10">
+        <div className="pt-6 mb-10 border-b border-border/50 pb-10" data-tour="portal-header">
           <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">
             Business Portal
           </p>
@@ -413,7 +413,7 @@ export default function PortalPage() {
 
         {/* Business cards */}
         {!loading && businesses.length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5" data-tour="portal-cards">
             {businesses.map((biz) => (
               <BusinessOwnerCard key={biz.placeId} business={biz} />
             ))}
@@ -422,7 +422,7 @@ export default function PortalPage() {
 
         {/* Empty state */}
         {!loading && businesses.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-24 text-center">
+          <div className="flex flex-col items-center justify-center py-24 text-center" data-tour="portal-cards">
             <div className="p-5 rounded-full bg-muted mb-4">
               <Building2 className="h-10 w-10 text-muted-foreground" />
             </div>

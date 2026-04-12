@@ -220,3 +220,14 @@ html.reduce-motion *::after {
 html.reduce-motion {
   scroll-behavior: auto !important;
 }
+
+/* First-launch guided tour: lift + glow on the spotlighted region */
+.tour-spotlight-target {
+  position: relative;
+  z-index: 205;
+  border-radius: 0.75rem;
+  box-shadow:
+    0 0 0 3px oklch(0.98 0 0 / 0.95),
+    0 0 0 1px oklch(0.98 0 0 / 0.35),
+    0 0 32px oklch(0.98 0 0 / 0.2);
+}

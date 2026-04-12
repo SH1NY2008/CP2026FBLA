@@ -267,7 +267,7 @@ export default function DealsPage() {
         </div>
 
         {/* Category chips */}
-        <div className="flex flex-wrap gap-2 mb-6">
+        <div className="flex flex-wrap gap-2 mb-6" data-tour="deals-categories">
           {CATEGORIES.map((cat) => (
             <button
               key={cat}
@@ -284,7 +284,7 @@ export default function DealsPage() {
         </div>
 
         {/* Toolbar */}
-        <div className="flex flex-col sm:flex-row gap-3 mb-8">
+        <div className="flex flex-col sm:flex-row gap-3 mb-8" data-tour="deals-toolbar">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
             <input
@@ -320,7 +320,10 @@ export default function DealsPage() {
 
         {/* Grid */}
         {displayed.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+          <div
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5"
+            data-tour="deals-grid"
+          >
             {displayed.map((deal) => (
               <DealCard
                 key={deal.id}
@@ -331,7 +334,10 @@ export default function DealsPage() {
             ))}
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center py-24 text-center gap-3">
+          <div
+            className="flex flex-col items-center justify-center py-24 text-center gap-3"
+            data-tour="deals-grid"
+          >
             <p className="font-semibold text-foreground">No deals found</p>
             <p className="text-sm text-muted-foreground">Try a different search or category.</p>
           </div>

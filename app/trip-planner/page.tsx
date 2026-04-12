@@ -190,7 +190,7 @@ export default function TripPlannerPage() {
     return (
       <main className="min-h-screen bg-background">
         <Header />
-        <Container className="max-w-4xl pt-32 pb-16 text-center">
+        <Container className="max-w-4xl pt-32 pb-16 text-center" data-tour="trip-guest">
           <div className="p-4 rounded-full bg-muted inline-flex mb-6">
             <Route className="h-8 w-8 text-muted-foreground" />
           </div>
@@ -227,7 +227,7 @@ export default function TripPlannerPage() {
           {/* Left: Stop selection */}
           <div className="lg:col-span-2 space-y-6">
             {/* Starting location */}
-            <div className="rounded-xl border border-border bg-card p-5">
+            <div className="rounded-xl border border-border bg-card p-5" data-tour="trip-start">
               <h3 className="text-sm font-bold text-foreground mb-3 flex items-center gap-2">
                 <LocateFixed className="h-4 w-4 text-blue-400" />
                 Starting Point
@@ -251,7 +251,7 @@ export default function TripPlannerPage() {
             </div>
 
             {/* Transportation Mode */}
-            <div className="rounded-xl border border-border bg-card p-5">
+            <div className="rounded-xl border border-border bg-card p-5" data-tour="trip-modes">
               <h3 className="text-sm font-bold text-foreground mb-3">Transportation Mode</h3>
               <div className="grid grid-cols-4 gap-2">
                 {TRAVEL_MODES.map(({ id, label, icon: Icon }) => (
@@ -272,7 +272,7 @@ export default function TripPlannerPage() {
             </div>
 
             {/* Stops */}
-            <div>
+            <div data-tour="trip-stops">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
                   <MapPin className="h-4 w-4" />
@@ -329,7 +329,7 @@ export default function TripPlannerPage() {
           </div>
 
           {/* Right: Results sidebar */}
-          <div className="space-y-4 lg:sticky lg:top-28 self-start">
+          <div className="space-y-4 lg:sticky lg:top-28 self-start" data-tour="trip-optimize">
             <Button
               onClick={handleOptimize}
               disabled={optimizing || !userLocation || selectedStops.length < 2}

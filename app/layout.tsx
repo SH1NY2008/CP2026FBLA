@@ -7,6 +7,8 @@ import { Toaster } from '@/components/ui/sonner'
 import { AccessibilityProvider } from '@/components/accessibility/accessibility-provider'
 import { VoiceNavigationFab } from '@/components/accessibility/voice-navigation-fab'
 import { AppProvider } from '@/presentation/context/app-context'
+import { AppGuidedTour } from '@/components/app-guided-tour'
+import { FirstVisitPrompt } from '@/components/first-visit-prompt'
 
 // Fonts are wired up for future use (e.g. mono for code blocks); body uses Tailwind's font-sans stack.
 const _geist = Geist({ subsets: ["latin"] });
@@ -48,6 +50,8 @@ export default function RootLayout({
           <AppProvider>
             <AccessibilityProvider>
               {children}
+              <FirstVisitPrompt />
+              <AppGuidedTour />
               <VoiceNavigationFab />
             </AccessibilityProvider>
           </AppProvider>
