@@ -21,9 +21,19 @@ export async function GET(request: NextRequest) {
     return keyCheck.response;
   }
 
+  const startedAt = Date.now();
   try {
     const data = await fetchPlaceDetails(parsed.data.placeId, keyCheck.apiKey);
-    return NextResponse.json({ result: data.result, status: data.status });
+    const serverProcessingMs = Date.now() - startedAt;
+    return NextResponse.json({
+      result: data.result,
+      status: data.status,
+      pipeline: {
+        clientEndpoint: 'GET /api/places/details',
+        upstreamApi: 'Google Places API — place/details/json (field-masked)',
+        serverProcessingMs,
+      },
+    });
   } catch (error) {
     console.error('Places API error:', error);
     return NextResponse.json(

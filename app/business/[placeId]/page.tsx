@@ -42,6 +42,7 @@ import {
   Mail,
   Send,
   ChevronRight,
+  FileText,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import {
@@ -129,6 +130,11 @@ import { SolarPanel } from '@/components/solar-panel';
 import { StreetView } from '@/components/street-view';
 import { AreaInsights } from '@/components/area-insights';
 import { TravelInfo } from '@/components/travel-info';
+import {
+  BusinessDetailsReportDialog,
+  EMPTY_BUSINESS_PIPELINE,
+  type BusinessDataPipeline,
+} from '@/components/business-details-report-dialog';
 import {
   getClaimedBusiness,
   getAnnouncementsForBusiness,
@@ -317,10 +323,17 @@ export default function BusinessDetailsPage() {
   const [inquiryMessage, setInquiryMessage] = useState('');
   const [inquirySending, setInquirySending] = useState(false);
 
+  const [reportOpen, setReportOpen] = useState(false);
+  const [dataPipeline, setDataPipeline] = useState<BusinessDataPipeline>(EMPTY_BUSINESS_PIPELINE);
+
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY;
   const todayIdx = new Date().getDay();
 
   // ── Effects ──────────────────────────────────────────────────────────────
+
+  useEffect(() => {
+    setReportOpen(false);
+  }, [placeId]);
 
   useEffect(() => {
     if (user && placeId) {
@@ -335,23 +348,37 @@ export default function BusinessDetailsPage() {
     const fetchDetails = async () => {
       setLoading(true);
       setError(null);
+      setDataPipeline(EMPTY_BUSINESS_PIPELINE);
       try {
+        const t0 = performance.now();
         const res = await fetch(`/api/places/details?placeId=${placeId}`);
+        const placesDetailsClientMs = Math.round(performance.now() - t0);
         if (!res.ok) throw new Error('Failed to fetch business details');
         const data = await res.json();
         if (data.status !== 'OK') throw new Error(data.error_message || 'Failed to fetch');
+        const placesServerMs = data.pipeline?.serverProcessingMs ?? null;
         const { editorial_summary: summary, ...rest } = data.result;
         setBusiness({ ...rest, summary });
 
+        const tR = performance.now();
         let rating = data.result.rating;
         let count = data.result.user_ratings_total;
         const ratingSnap = await getDoc(placeDataDoc(db, 'businessRatings', placeId));
+        const firestoreRatingsMs = Math.round(performance.now() - tR);
         if (ratingSnap.exists()) {
           const d = ratingSnap.data();
           if (d.rating && d.ratingCount) { rating = d.rating; count = d.ratingCount; }
         }
         setDisplayRating(rating);
         setDisplayRatingCount(count);
+
+        setDataPipeline((prev) => ({
+          ...prev,
+          placesDetailsClientMs,
+          placesServerMs,
+          placesApiStatus: data.status,
+          firestoreRatingsMs,
+        }));
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to fetch business details');
       } finally {
@@ -360,6 +387,11 @@ export default function BusinessDetailsPage() {
     };
     fetchDetails();
   }, [placeId]);
+
+  useEffect(() => {
+    if (!business?.summary) return;
+    setDataPipeline((prev) => ({ ...prev, summarySource: 'google_editorial' }));
+  }, [business]);
 
   // Distance
   useEffect(() => {
@@ -381,6 +413,7 @@ export default function BusinessDetailsPage() {
   useEffect(() => {
     if (!business || business.summary) return;
     setAiLoading(true);
+    const t0 = performance.now();
     fetch('/api/ai-summary', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -393,7 +426,16 @@ export default function BusinessDetailsPage() {
       }),
     })
       .then((r) => r.json())
-      .then((d) => { if (d.summary) setAiSummary(d.summary); })
+      .then((d) => {
+        if (d.summary) {
+          setAiSummary(d.summary);
+          setDataPipeline((prev) => ({
+            ...prev,
+            summarySource: 'ai',
+            aiSummaryClientMs: Math.round(performance.now() - t0),
+          }));
+        }
+      })
       .catch(() => {})
       .finally(() => setAiLoading(false));
   }, [business, displayRating, displayRatingCount]);
@@ -425,9 +467,12 @@ export default function BusinessDetailsPage() {
   // Load business portal data (claimed profile, announcements, events, deals, owner replies)
   useEffect(() => {
     if (!placeId) return;
+    let cancelled = false;
     const loadPortal = async () => {
+      const t0 = performance.now();
       try {
         const claimed = await getClaimedBusiness(placeId);
+        if (cancelled) return;
         setClaimData(claimed);
         if (claimed) {
           const [anns, evts, deals, replies] = await Promise.all([
@@ -436,16 +481,60 @@ export default function BusinessDetailsPage() {
             getDealsForBusiness(placeId),
             getOwnerRepliesForPlace(placeId),
           ]);
+          const futureEvts = evts.filter((e) => new Date(e.date + 'T23:59:59') >= new Date());
+          const activeDeals = deals.filter((d) => d.active);
           setAnnouncements(anns);
-          setEvents(evts.filter((e) => new Date(e.date + 'T23:59:59') >= new Date()));
-          setOwnerDeals(deals.filter((d) => d.active));
+          setEvents(futureEvts);
+          setOwnerDeals(activeDeals);
           const rMap: Record<string, OwnerReply> = {};
           replies.forEach((r) => { rMap[r.commentId] = r; });
           setOwnerReplies(rMap);
+          if (!cancelled) {
+            setDataPipeline((prev) => ({
+              ...prev,
+              portalLoadMs: Math.round(performance.now() - t0),
+              portalStats: {
+                claimed: true,
+                announcementCount: anns.length,
+                eventCount: futureEvts.length,
+                dealCount: activeDeals.length,
+                ownerReplyCount: replies.length,
+              },
+            }));
+          }
+        } else {
+          setAnnouncements([]);
+          setEvents([]);
+          setOwnerDeals([]);
+          setOwnerReplies({});
+          if (!cancelled) {
+            setDataPipeline((prev) => ({
+              ...prev,
+              portalLoadMs: Math.round(performance.now() - t0),
+              portalStats: {
+                claimed: false,
+                announcementCount: 0,
+                eventCount: 0,
+                dealCount: 0,
+                ownerReplyCount: 0,
+              },
+            }));
+          }
         }
-      } catch { /* non-critical */ }
+      } catch {
+        if (!cancelled) {
+          setDataPipeline((prev) => ({
+            ...prev,
+            portalLoadMs: Math.round(performance.now() - t0),
+            portalStats: null,
+          }));
+        }
+      }
     };
     loadPortal();
+    return () => {
+      cancelled = true;
+    };
   }, [placeId]);
 
   const handleSendInquiry = async () => {
@@ -728,6 +817,10 @@ export default function BusinessDetailsPage() {
                 <Button variant="outline" onClick={handleShare} className="gap-2">
                   <Share2 className="h-4 w-4" />
                   Share
+                </Button>
+                <Button variant="outline" onClick={() => setReportOpen(true)} className="gap-2">
+                  <FileText className="h-4 w-4" />
+                  Data report
                 </Button>
                 <ReviewDialog trigger={
                   <Button className="gap-2">
@@ -1299,6 +1392,21 @@ export default function BusinessDetailsPage() {
               businessName={business.name}
             />
           )}
+
+          <BusinessDetailsReportDialog
+            open={reportOpen}
+            onOpenChange={setReportOpen}
+            placeId={placeId}
+            user={user}
+            business={business}
+            pipeline={dataPipeline}
+            displayRating={rating}
+            displayRatingCount={ratingCount}
+            distanceMiles={distance}
+            checkinCount={checkinCount}
+            communityPhotoCount={communityPhotos.length}
+            isBookmarked={isBookmarked}
+          />
         </>
       )}
     </main>
