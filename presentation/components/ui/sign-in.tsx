@@ -133,7 +133,17 @@ export const SignInPage: React.FC<SignInPageProps> = ({
             <div className="animate-element animate-delay-900 text-center text-sm"> 
               <span className="text-white/50">Don't have an account? </span> 
               <a href="#" onClick={(e) => { e.preventDefault(); onCreateAccount?.(); }} className="text-white font-medium hover:underline underline-offset-4 transition-colors">Create a new account</a> 
-            </div> 
+            </div>
+
+            {process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY && (
+              <p className="text-[10px] text-white/45 text-center leading-relaxed px-1">
+                This site is protected by reCAPTCHA and the Google{' '}
+                <a href="https://policies.google.com/privacy" className="underline hover:text-white/80" target="_blank" rel="noreferrer">Privacy Policy</a>
+                {' '}and{' '}
+                <a href="https://policies.google.com/terms" className="underline hover:text-white/80" target="_blank" rel="noreferrer">Terms of Service</a>
+                {' '}apply.
+              </p>
+            )}
           </div> 
         </div> 
       </section>

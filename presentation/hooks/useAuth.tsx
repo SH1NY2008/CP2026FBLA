@@ -6,6 +6,8 @@ import {
   type User,
 } from "firebase/auth"
 import { auth, googleProvider } from "@/firebase"
+import { toast } from "sonner"
+import { ensureRecaptchaVerified } from "@/presentation/lib/recaptcha-client"
 
 /**
  * Wraps Firebase's long-lived auth listener so any component can read `user` without
@@ -23,6 +25,11 @@ export function useAuth() {
   }, [])
 
   const signInWithGoogle = useCallback(async () => {
+    const r = await ensureRecaptchaVerified("google_login")
+    if (!r.ok) {
+      toast.error(r.message)
+      return
+    }
     await signInWithPopup(auth, googleProvider)
   }, [])
 

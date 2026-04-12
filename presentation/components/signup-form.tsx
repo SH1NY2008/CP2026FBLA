@@ -15,6 +15,7 @@ import { createUserWithEmailAndPassword, signInWithPopup } from "firebase/auth";
 import { auth, googleProvider } from "@/firebase";
 import { useRouter } from "next/navigation";
 import { validateEmailSyntax, validatePasswordSignup } from "@/lib/validation";
+import { ensureRecaptchaVerified } from "@/presentation/lib/recaptcha-client";
 
 export function SignUpForm({ 
   className, 
@@ -38,6 +39,11 @@ export function SignUpForm({
       setFormError(pw);
       return;
     }
+    const recaptcha = await ensureRecaptchaVerified('signup');
+    if (!recaptcha.ok) {
+      setFormError(recaptcha.message);
+      return;
+    }
     try {
       await createUserWithEmailAndPassword(auth, email.trim(), password);
       router.push('/deals');
@@ -48,6 +54,11 @@ export function SignUpForm({
   };
 
   const handleGoogleSignUp = async () => {
+    const recaptcha = await ensureRecaptchaVerified('google_signup');
+    if (!recaptcha.ok) {
+      setFormError(recaptcha.message);
+      return;
+    }
     try {
       await signInWithPopup(auth, googleProvider);
       router.push('/deals');
@@ -95,6 +106,15 @@ export function SignUpForm({
             Login
           </a>
         </FieldDescription>
+        {process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY && (
+          <p className="text-center text-[10px] text-muted-foreground leading-relaxed">
+            This site is protected by reCAPTCHA and the Google{' '}
+            <a href="https://policies.google.com/privacy" className="underline underline-offset-2" target="_blank" rel="noreferrer">Privacy Policy</a>
+            {' '}and{' '}
+            <a href="https://policies.google.com/terms" className="underline underline-offset-2" target="_blank" rel="noreferrer">Terms of Service</a>
+            {' '}apply.
+          </p>
+        )}
       </FieldGroup>
     </form>
   )

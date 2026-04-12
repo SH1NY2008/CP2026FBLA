@@ -4,6 +4,7 @@ import { SignInPage } from "@/components/ui/sign-in";
 import { auth, googleProvider } from "@/firebase";
 import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
 import { useRouter } from "next/navigation";
+import { ensureRecaptchaVerified } from "@/presentation/lib/recaptcha-client";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -13,6 +14,11 @@ export default function LoginPage() {
     const formData = new FormData(event.currentTarget);
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
+    const recaptcha = await ensureRecaptchaVerified("login");
+    if (!recaptcha.ok) {
+      alert(recaptcha.message);
+      return;
+    }
     try {
       await signInWithEmailAndPassword(auth, email, password);
       router.push("/");
@@ -23,6 +29,11 @@ export default function LoginPage() {
   };
 
   const handleGoogleSignIn = async () => {
+    const recaptcha = await ensureRecaptchaVerified("google_login");
+    if (!recaptcha.ok) {
+      alert(recaptcha.message);
+      return;
+    }
     try {
       await signInWithPopup(auth, googleProvider);
       router.push("/");

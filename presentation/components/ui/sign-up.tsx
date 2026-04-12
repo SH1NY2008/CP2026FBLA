@@ -96,6 +96,16 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({
               <span className="text-white/50">Already have an account? </span>
               <a href="#" onClick={(e) => { e.preventDefault(); onSignIn?.(); }} className="text-white font-medium hover:underline underline-offset-4 transition-colors">Sign in</a>
             </div>
+
+            {process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY && (
+              <p className="text-[10px] text-white/45 text-center leading-relaxed px-1">
+                This site is protected by reCAPTCHA and the Google{' '}
+                <a href="https://policies.google.com/privacy" className="underline hover:text-white/80" target="_blank" rel="noreferrer">Privacy Policy</a>
+                {' '}and{' '}
+                <a href="https://policies.google.com/terms" className="underline hover:text-white/80" target="_blank" rel="noreferrer">Terms of Service</a>
+                {' '}apply.
+              </p>
+            )}
           </div>
         </div>
       </section>
