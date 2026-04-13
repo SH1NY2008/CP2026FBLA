@@ -14,7 +14,9 @@ export async function fetchMapsApiJson<T>(
     }
   }
   const url = `${MAPS_API_BASE}/${path}?${params.toString()}`;
-  const response = await fetch(url);
+  const response = await fetch(url, {
+    next: { revalidate: 3600 }, // cache identical requests for 1 hour
+  });
   if (!response.ok) {
     throw new Error(`Google Maps API error: ${response.statusText}`);
   }

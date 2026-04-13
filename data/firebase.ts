@@ -23,7 +23,12 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 
 // Analytics touches `window` — must not run during SSR or the build will complain.
-const analytics = typeof window !== 'undefined' ? getAnalytics(app) : null;
+// Skip in development to avoid "Failed to fetch measurement ID" noise from Firebase
+// trying to dynamically resolve the ID over the network.
+const analytics =
+  typeof window !== 'undefined' && process.env.NODE_ENV === 'production'
+    ? getAnalytics(app)
+    : null;
 
 export const auth = getAuth(app);
 /** Firestore instance — collection names and document shapes live in `data/firestore/schema.ts`. */

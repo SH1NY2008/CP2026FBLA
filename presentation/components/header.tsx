@@ -18,6 +18,7 @@ import { useState } from 'react';
 import { HelpQADialog } from '@/components/help-qa-dialog';
 
 const NAV_LINKS = [
+  { label: 'Dashboard', href: '/dashboard' },
   { label: 'Browse', href: '/browse' },
   { label: 'Explore', href: '/explore' },
   { label: 'Deals', href: '/deals' },
