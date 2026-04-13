@@ -208,19 +208,6 @@ html.high-contrast :focus-visible {
   outline-offset: 3px;
 }
 
-/* User preference: reduce motion (toggled on /accessibility) */
-html.reduce-motion *,
-html.reduce-motion *::before,
-html.reduce-motion *::after {
-  animation-duration: 0.001ms !important;
-  animation-iteration-count: 1 !important;
-  transition-duration: 0.001ms !important;
-}
-
-html.reduce-motion {
-  scroll-behavior: auto !important;
-}
-
 /* First-launch guided tour: lift + glow on the spotlighted region */
 .tour-spotlight-target {
   position: relative;

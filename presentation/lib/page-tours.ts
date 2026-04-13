@@ -226,8 +226,7 @@ export const TOURS_BY_ROUTE: Record<string, TourStep[]> = {
     {
       id: 'a11y-welcome',
       title: 'Accessibility',
-      body:
-        'Tune voice navigation, contrast, motion, and optional read-aloud on this page.',
+      body: 'Tune voice navigation and contrast preferences on this page.',
       selectors: [],
     },
     {
@@ -240,16 +239,8 @@ export const TOURS_BY_ROUTE: Record<string, TourStep[]> = {
     {
       id: 'a11y-display',
       title: 'Display',
-      body:
-        'High contrast and reduce motion apply site-wide for this browser.',
+      body: 'High contrast applies site-wide for this browser.',
       selectors: ['[data-tour="a11y-display"]'],
-    },
-    {
-      id: 'a11y-read',
-      title: 'Read aloud',
-      body:
-        'Uses the browser’s speech synthesis to read this page — helpful alongside screen readers.',
-      selectors: ['[data-tour="a11y-read-aloud"]'],
     },
   ],
 };

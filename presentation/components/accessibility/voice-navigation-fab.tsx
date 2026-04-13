@@ -70,6 +70,8 @@ export function VoiceNavigationFab() {
   const userStoppedRef = React.useRef(false)
   /** Prevents stale `onend` from an old session from running navigation after a new session starts. */
   const sessionGenRef = React.useRef(0)
+  /** Avoid duplicate navigation when a command is matched before `onend` fires. */
+  const autoNavigatedRef = React.useRef(false)
 
   React.useEffect(() => {
     setSupported(!!getSpeechRecognitionCtor())
@@ -114,6 +116,7 @@ export function VoiceNavigationFab() {
 
     tearDownRecognition()
     userStoppedRef.current = false
+    autoNavigatedRef.current = false
     transcriptRef.current = ''
     setLiveTranscript('')
 
@@ -126,6 +129,30 @@ export function VoiceNavigationFab() {
       const text = fullTranscriptFromEvent(event)
       transcriptRef.current = text
       setLiveTranscript(text.trim())
+
+      if (autoNavigatedRef.current) {
+        return
+      }
+
+      const path = matchVoiceRoute(text)
+      if (!path) {
+        return
+      }
+
+      autoNavigatedRef.current = true
+      setListening(false)
+      recognitionRef.current = null
+      try {
+        recognition.stop()
+      } catch {
+        try {
+          recognition.abort()
+        } catch {
+          /* ignore */
+        }
+      }
+      router.push(path)
+      toast.success(`Going to ${path === '/' ? 'home' : path}`)
     }
 
     recognition.onerror = (event: Event) => {
@@ -155,9 +182,15 @@ export function VoiceNavigationFab() {
 
       const text = transcriptRef.current.trim()
       const explicitStop = userStoppedRef.current
+      const autoNavigated = autoNavigatedRef.current
       userStoppedRef.current = false
+      autoNavigatedRef.current = false
       transcriptRef.current = ''
       setLiveTranscript('')
+
+      if (autoNavigated) {
+        return
+      }
 
       if (text) {
         const path = matchVoiceRoute(text)

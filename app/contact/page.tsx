@@ -39,6 +39,12 @@ export default function ContactPage() {
   const [message, setMessage] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [sent, setSent] = useState(false);
+  const allFieldsFilled =
+    firstName.trim().length > 0 &&
+    lastName.trim().length > 0 &&
+    email.trim().length > 0 &&
+    subject.trim().length > 0 &&
+    message.trim().length > 0;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -157,7 +163,11 @@ export default function ContactPage() {
               <Button
                 type="submit"
                 disabled={sent}
-                className="rounded-xl bg-foreground text-background hover:bg-foreground/90 h-11 font-semibold mt-1"
+                className={`rounded-xl h-11 font-semibold mt-1 text-background transition-colors ${
+                  allFieldsFilled
+                    ? 'bg-emerald-600 hover:bg-emerald-500'
+                    : 'bg-foreground hover:bg-foreground/90'
+                }`}
               >
                 {sent ? 'Sent' : 'Send message'} <ArrowRight className="ml-2 w-4 h-4" />
               </Button>

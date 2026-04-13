@@ -6,30 +6,29 @@ const STORAGE = {
   voice: 'a11y-voice-navigation',
   voiceMicOnboarding: 'a11y-voice-mic-onboarding',
   highContrast: 'a11y-high-contrast',
-  reduceMotion: 'a11y-reduce-motion',
 } as const
 
 type AccessibilityState = {
   voiceNavigationEnabled: boolean
   highContrast: boolean
-  reduceMotion: boolean
 }
 
 type AccessibilityContextValue = AccessibilityState & {
   setVoiceNavigationEnabled: (value: boolean) => void
   setHighContrast: (value: boolean) => void
-  setReduceMotion: (value: boolean) => void
   hydrated: boolean
 }
 
 const AccessibilityContext = React.createContext<AccessibilityContextValue | null>(null)
 
-function readBool(key: string): boolean {
+function readBool(key: string, defaultValue = false): boolean {
   if (typeof window === 'undefined') return false
   try {
-    return window.localStorage.getItem(key) === '1'
+    const raw = window.localStorage.getItem(key)
+    if (raw === null) return defaultValue
+    return raw === '1'
   } catch {
-    return false
+    return defaultValue
   }
 }
 
@@ -45,26 +44,23 @@ function applyDocumentClasses(state: AccessibilityState) {
   if (typeof document === 'undefined') return
   const root = document.documentElement
   root.classList.toggle('high-contrast', state.highContrast)
-  root.classList.toggle('reduce-motion', state.reduceMotion)
 }
 
 export function AccessibilityProvider({ children }: { children: React.ReactNode }) {
   const [hydrated, setHydrated] = React.useState(false)
   const [voiceNavigationEnabled, setVoiceNavigationEnabledState] = React.useState(false)
   const [highContrast, setHighContrastState] = React.useState(false)
-  const [reduceMotion, setReduceMotionState] = React.useState(false)
 
   React.useEffect(() => {
-    setVoiceNavigationEnabledState(readBool(STORAGE.voice))
+    setVoiceNavigationEnabledState(readBool(STORAGE.voice, true))
     setHighContrastState(readBool(STORAGE.highContrast))
-    setReduceMotionState(readBool(STORAGE.reduceMotion))
     setHydrated(true)
   }, [])
 
   React.useEffect(() => {
     if (!hydrated) return
-    applyDocumentClasses({ highContrast, reduceMotion, voiceNavigationEnabled })
-  }, [hydrated, highContrast, reduceMotion, voiceNavigationEnabled])
+    applyDocumentClasses({ highContrast, voiceNavigationEnabled })
+  }, [hydrated, highContrast, voiceNavigationEnabled])
 
   const setVoiceNavigationEnabled = React.useCallback((value: boolean) => {
     setVoiceNavigationEnabledState(value)
@@ -76,28 +72,19 @@ export function AccessibilityProvider({ children }: { children: React.ReactNode 
     writeBool(STORAGE.highContrast, value)
   }, [])
 
-  const setReduceMotion = React.useCallback((value: boolean) => {
-    setReduceMotionState(value)
-    writeBool(STORAGE.reduceMotion, value)
-  }, [])
-
   const value = React.useMemo<AccessibilityContextValue>(
     () => ({
       voiceNavigationEnabled,
       highContrast,
-      reduceMotion,
       setVoiceNavigationEnabled,
       setHighContrast,
-      setReduceMotion,
       hydrated,
     }),
     [
       voiceNavigationEnabled,
       highContrast,
-      reduceMotion,
       setVoiceNavigationEnabled,
       setHighContrast,
-      setReduceMotion,
       hydrated,
     ],
   )
