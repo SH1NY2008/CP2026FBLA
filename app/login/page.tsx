@@ -38,9 +38,10 @@ export default function LoginPage() {
       await signInWithPopup(auth, googleProvider);
       router.push("/");
     } catch (error: any) {
-      if (error.code !== 'auth/cancelled-popup-request') {
+      const silent = ['auth/popup-closed-by-user', 'auth/cancelled-popup-request', 'auth/user-cancelled'];
+      if (!silent.includes(error?.code)) {
         console.error('Error signing in with Google:', error);
-        alert(`Google Sign-In failed. Please check the console for details. Common issues include not enabling Google Sign-In in the Firebase console or missing environment variables. Error: ${error.message}`);
+        alert(`Google Sign-In failed. Please try again. Error: ${error.message}`);
       }
     }
   };

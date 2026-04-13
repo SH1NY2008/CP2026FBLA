@@ -38,7 +38,8 @@ export default function SignupPage() {
       await signInWithPopup(auth, googleProvider);
       router.push("/");
     } catch (error: any) {
-      if (error.code !== 'auth/cancelled-popup-request') {
+      const silent = ['auth/popup-closed-by-user', 'auth/cancelled-popup-request', 'auth/user-cancelled'];
+      if (!silent.includes(error?.code)) {
         console.error('Error signing up with Google:', error);
         alert(`Google Sign-Up failed. ${error.message}`);
       }

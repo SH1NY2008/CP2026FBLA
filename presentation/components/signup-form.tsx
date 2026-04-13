@@ -63,8 +63,10 @@ export function SignUpForm({
       await signInWithPopup(auth, googleProvider);
       router.push('/deals');
     } catch (error: any) {
-      if (error.code !== 'auth/cancelled-popup-request') {
+      const silent = ['auth/popup-closed-by-user', 'auth/cancelled-popup-request', 'auth/user-cancelled'];
+      if (!silent.includes(error?.code)) {
         console.error('Error signing up with Google:', error);
+        setFormError('Google sign-up failed. Please try again.');
       }
     }
   };

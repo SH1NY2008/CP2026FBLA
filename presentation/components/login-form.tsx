@@ -65,8 +65,12 @@ export function LoginForm({
     try {
       await signInWithPopup(auth, googleProvider);
       router.push('/deals');
-    } catch (error) {
-      console.error('Error signing in with Google:', error);
+    } catch (error: any) {
+      const silent = ['auth/popup-closed-by-user', 'auth/cancelled-popup-request', 'auth/user-cancelled'];
+      if (!silent.includes(error?.code)) {
+        console.error('Error signing in with Google:', error);
+        setError('Google sign-in failed. Please try again.');
+      }
     }
   };
 
