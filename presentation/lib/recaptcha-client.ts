@@ -3,6 +3,8 @@
 /**
  * reCAPTCHA v3 — invisible, score-based.
  * If NEXT_PUBLIC_RECAPTCHA_SITE_KEY is unset, verification is skipped (local dev without keys).
+ * If the site key is set but NEXT_PUBLIC_RECAPTCHA_ENFORCE is not "true", the UI disclaimer
+ * can still show while sign-in proceeds without token verification (Google + email flows).
  */
 
 declare global {
@@ -91,6 +93,10 @@ export async function ensureRecaptchaVerified(
 ): Promise<{ ok: true } | { ok: false; message: string }> {
   const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
   if (!siteKey) {
+    return { ok: true };
+  }
+
+  if (process.env.NEXT_PUBLIC_RECAPTCHA_ENFORCE !== 'true') {
     return { ok: true };
   }
 

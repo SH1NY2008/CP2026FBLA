@@ -4,6 +4,7 @@ import * as React from 'react'
 
 const STORAGE = {
   voice: 'a11y-voice-navigation',
+  voiceMicOnboarding: 'a11y-voice-mic-onboarding',
   highContrast: 'a11y-high-contrast',
   reduceMotion: 'a11y-reduce-motion',
 } as const
@@ -102,6 +103,24 @@ export function AccessibilityProvider({ children }: { children: React.ReactNode 
   )
 
   return <AccessibilityContext.Provider value={value}>{children}</AccessibilityContext.Provider>
+}
+
+export function markVoiceMicOnboardingComplete() {
+  if (typeof window === 'undefined') return
+  try {
+    window.localStorage.setItem(STORAGE.voiceMicOnboarding, '1')
+  } catch {
+    /* ignore */
+  }
+}
+
+export function hasVoiceMicOnboardingCompleted(): boolean {
+  if (typeof window === 'undefined') return true
+  try {
+    return window.localStorage.getItem(STORAGE.voiceMicOnboarding) === '1'
+  } catch {
+    return false
+  }
 }
 
 export function useAccessibility() {

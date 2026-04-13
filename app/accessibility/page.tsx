@@ -73,10 +73,12 @@ export default function AccessibilityPage() {
           <CardHeader>
             <CardTitle>Voice navigation</CardTitle>
             <CardDescription>
-              When enabled, a microphone button appears at the bottom-right. Click once to start
-              listening, speak a destination (for example: &quot;home&quot;, &quot;browse&quot;,
-              &quot;deals&quot;), then click again to stop — your words appear above the mic, and we
-              try to open the matching page. Works best in Chrome or Edge.
+              When enabled, a microphone button appears at the bottom-right. The first time you
+              tap it, we ask if you are new to voice navigation and can show short instructions.
+              Then tap once to start listening, say a destination (for example: &quot;home&quot;,
+              &quot;browse&quot;, &quot;deals&quot;), and tap again when you are done — your words
+              appear above the mic, and we try to open the matching page. Allow the microphone if
+              your browser prompts you. Works best in Chrome or Edge on desktop.
             </CardDescription>
           </CardHeader>
           <CardContent className="flex items-center justify-between gap-4">
